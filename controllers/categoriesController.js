@@ -331,9 +331,9 @@ export const getCategoriesWithSubcategories = async (req, res) => {
       {
         $lookup: {
           from: "categories", // must match your MongoDB collection name
-          localField: "parentSlug",
-          foreignField: "slug",
-          as: "parentCategory"
+          localField: "slug",
+          foreignField: "parentSlug",
+          as: "maincategories"
         }
       }
     ]);
