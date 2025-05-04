@@ -5,6 +5,7 @@ import connectDB from "./database/db.js";
 import { authRouter } from "./routes/auth.js";
 import { categoryRouter } from "./routes/categoryRoutes.js";
 import { postRouter } from "./routes/postRoutes.js";
+import { structureRouter } from "./routes/structureRoutes.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(express.json()); // Middleware to parse JSON request body
 app.use("/api/auth", authRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/post", postRouter);
+app.use("/api/structure", structureRouter);
 
 app.listen(PORT, () => {
   console.log("APP is running on port " + PORT);

@@ -13,6 +13,13 @@ const categorySchema = new mongoose.Schema(
     description: {
       type: String
     },
+    parentCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category"
+    },
+    parentSlug: {
+      type: String
+    },
     iconUrl: {
       type: String,
       default: "https://example.com/default-icon.png" // Default icon URL

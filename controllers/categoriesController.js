@@ -4,7 +4,15 @@ import sub_categories from "../models/sub_categories.js";
 // These function are used to create, update, and delete categories in the database
 
 export const createCategory = async (req, res) => {
-  const { name, slug, description, iconUrl } = req.body;
+  const { name, slug, description, iconUrl, parentSlug } = req.body;
+
+  const parentCategory = await categories.findOne({ slug: parentSlug });
+  if (!parentCategory) {
+    return res.status(404).json({
+      success: false,
+      message: `Parent category with slug '${parentSlug}' not found`
+    });
+  }
 
   // Check if the category already exists
   const existingCategory = await categories.findOne({ slug });
@@ -16,7 +24,14 @@ export const createCategory = async (req, res) => {
   }
 
   try {
-    const newCategory = new categories({ name, slug, description, iconUrl });
+    const newCategory = new categories({
+      name,
+      slug,
+      description,
+      iconUrl,
+      parentCategory: parentCategory._id,
+      parentSlug
+    });
     await newCategory.save();
     return res.status(201).json({
       success: true,
@@ -150,9 +165,9 @@ export const getAllCategories = async (req, res) => {
 // These function are used to create, update, and delete sub-categories in the database
 
 export const createSubcategory = async (req, res) => {
-  const { name, slug, description, parentSlug } = req.body;
+  const { name, slug, description, type, parentSlug } = req.body;
 
-  if (!name || !slug || !parentSlug) {
+  if (!name || !slug || !parentSlug || !type) {
     return res.status(400).json({
       success: false,
       message: "Name, slug, and parentSlug are required"
@@ -183,6 +198,7 @@ export const createSubcategory = async (req, res) => {
       name,
       slug,
       description,
+      type,
       parentCategory: parentCategory._id,
       parentSlug // Store the slug of the parent category
     });
@@ -295,6 +311,29 @@ export const getAllSubcategoriesOfCategory = async (req, res) => {
   } catch (error) {
     console.error("Error in getAllSubcategoriesOfCategory:", error);
     return res.status(500).json({
+      success: false,
+      message: "Internal Server Error"
+    });
+  }
+};
+
+export const getCategoriesWithSubcategories = async (req, res) => {
+  try {
+    const result = await categories.aggregate([
+      {
+        $lookup: {
+          from: "subcategories", // must match your MongoDB collection name
+          localField: "slug",
+          foreignField: "parentSlug",
+          as: "subcategories"
+        }
+      }
+    ]);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Aggregation Error:", error);
+    res.status(500).json({
       success: false,
       message: "Internal Server Error"
     });

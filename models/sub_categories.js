@@ -15,7 +15,6 @@ const subCategorySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["", "image"],
       default: "text"
     },
     parentCategory: {

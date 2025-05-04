@@ -1,6 +1,7 @@
 import posts from "../models/posts.js";
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
+import tableStructure from "../models/table-structure.js";
 
 export const createPost = async (req, res) => {
   const {
@@ -133,24 +134,56 @@ export const getPosts = async (req, res) => {
   }
 };
 
-export const searchPosts = async (req, res) => {
-  const { query } = req.params;
+// fetch posts by category slug andf subcategory slug
+export const getPostsByCategoryAndSubcategory = async (req, res) => {
+
+  const { categorySlug } = req.params;
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
-
-  console.log("Query:", query);
+  let table = null; // Initialize table to null
+  const subCategorySlug = req.params.subcategorySlug;
 
   try {
+    const category = await categories.findOne({ slug: categorySlug });
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: `Category with slug '${categorySlug}' not found`
+      });
+    }
+
+    const subCategory = await sub_categories.findOne({
+      slug: subCategorySlug,
+      parentCategory: category._id
+    });
+    if (!subCategory) {
+      return res.status(404).json({
+        success: false,
+        message: `Subcategory with slug '${subCategorySlug}' not found in category '${categorySlug}'`
+      });
+    }
+
+    if (subCategory.type.includes("Table")) {
+      console.log(
+        "Fetching table structure for subcategory:",
+        subCategory.type
+      );
+
+      table = await tableStructure.findOne({ slug: subCategory.type });
+    } else if (subCategory.type.includes("card")) {
+      // Handle card type if needed
+    }
+
     const totalPosts = await posts.countDocuments({
-      $or: [{ title: { $regex: query, $options: "i" } }]
+      category: category._id,
+      subCategory: subCategory._id
     });
     const totalPages = Math.ceil(totalPosts / limit);
+
     const allPosts = await posts
       .find({
-        $or: [
-          { title: { $regex: query, $options: "i" } },
-          { content: { $regex: query, $options: "i" } }
-        ]
+        category: category._id,
+        subCategory: subCategory._id
       })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -161,9 +194,56 @@ export const searchPosts = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Posts fetched successfully",
+      table: table,
       posts: allPosts,
       totalPages,
-      currentPage: page
+      currentPage: Number(page)
+    });
+  } catch (error) {
+    console.error("Error in getPostsByCategoryAndSubcategory:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error"
+    });
+  }
+};
+
+export const searchPosts = async (req, res) => {
+  const { query } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+  const skip = (page - 1) * limit;
+
+  if (!query || query.trim() === "") {
+    return res.status(400).json({
+      success: false,
+      message: "Search query is required"
+    });
+  }
+
+  console.log("Query:", query);
+
+  try {
+    const filter = {
+      title: { $regex: query, $options: "i" } // Case-insensitive match
+    };
+
+    const totalPosts = await posts.countDocuments(filter);
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    const allPosts = await posts
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .populate("category", "slug")
+      .populate("subCategory", "slug");
+
+    return res.status(200).json({
+      success: true,
+      message: "Posts fetched successfully",
+      posts: allPosts,
+      totalPages,
+      currentPage: Number(page)
     });
   } catch (error) {
     console.error("Error in searchPosts:", error);
