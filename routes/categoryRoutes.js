@@ -36,9 +36,6 @@ categoryRouter.delete(
 );
 
 categoryRouter.get("/all-subcategories/:slug", getAllSubcategoriesOfCategory);
-categoryRouter.get(
-  "/get-category&subcategories",
-  getCategoriesWithSubcategories
-); // Assuming you want to use the same controller for getting all categories with subcategories
+categoryRouter.get("/getcategories", getCategoriesWithSubcategories); // Assuming you want to use the same controller for getting all categories with subcategories
 
 export { categoryRouter };
