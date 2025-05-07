@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDB from "./database/db.js";
+import cors from "cors";
 import { authRouter } from "./routes/auth.js";
 import { categoryRouter } from "./routes/categoryRoutes.js";
 import { postRouter } from "./routes/postRoutes.js";
@@ -11,8 +12,6 @@ import { tablePostRouter } from "./routes/tablePostRoutes.js";
 dotenv.config();
 
 const app = express();
-const cors = cors();
-
 const PORT = process.env.PORT || 3000;
 
 //Get Method
@@ -26,7 +25,7 @@ app.use(express.json()); // Middleware to parse JSON request body
 app.use(
   cors({
     origin: "http://localhost:5173", // allow only your frontend origin
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   })
 );
