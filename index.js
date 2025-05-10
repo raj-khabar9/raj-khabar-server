@@ -23,11 +23,18 @@ connectDB();
 app.use(cookieParser()); // Middleware to parse cookies
 app.use(express.json()); // Middleware to parse JSON request body
 app.use(
-  cors({
-    origin: "http://localhost:5173", // allow only your frontend origin
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-  })
+  cors(
+    {
+      origin: "http://localhost:5173", // allow only your frontend origin
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true
+    },
+    {
+      origin: "raj-khabar-server-production.up.railway.app",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true
+    }
+  )
 );
 
 //Mounting the authRouter on the app
