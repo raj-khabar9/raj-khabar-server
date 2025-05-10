@@ -21,7 +21,7 @@ const tableStructureSchema = new mongoose.Schema(
         },
         type: {
           type: String,
-          enum: ["text", "number", "date", "boolean"],
+          enum: ["text", "number", "date", "boolean", "link"],
           default: "text"
         },
         required: {

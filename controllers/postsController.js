@@ -1,7 +1,6 @@
 import posts from "../models/posts.js";
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
-import tableStructure from "../models/table-structure.js";
 
 export const createPost = async (req, res) => {
   const {
@@ -59,6 +58,14 @@ export const createPost = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: `Subcategory with slug ${subcategoryslug} does not exist in category ${categoryslug}`
+    });
+  }
+
+  if (subcategory.type != "posts") {
+    return res.status(400).json({
+      success: false,
+      message: `Subcategory with slug ${subcategoryslug} is not a post type`,
+      subcategoryType: subcategory.type
     });
   }
 
@@ -134,13 +141,11 @@ export const getPosts = async (req, res) => {
   }
 };
 
-// fetch posts by category slug andf subcategory slug
+// fetch posts by category slug and subcategory slug
 export const getPostsByCategoryAndSubcategory = async (req, res) => {
-
   const { categorySlug } = req.params;
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
-  let table = null; // Initialize table to null
   const subCategorySlug = req.params.subcategorySlug;
 
   try {
@@ -163,15 +168,11 @@ export const getPostsByCategoryAndSubcategory = async (req, res) => {
       });
     }
 
-    if (subCategory.type.includes("Table")) {
-      console.log(
-        "Fetching table structure for subcategory:",
-        subCategory.type
-      );
-
-      table = await tableStructure.findOne({ slug: subCategory.type });
-    } else if (subCategory.type.includes("card")) {
-      // Handle card type if needed
+    if (!subCategory.type || subCategory.type !== "posts") {
+      return res.status(404).json({
+        success: false,
+        message: `Subcategory with slug '${subCategorySlug}' is not a post type in category '${categorySlug}'`
+      });
     }
 
     const totalPosts = await posts.countDocuments({
@@ -194,7 +195,6 @@ export const getPostsByCategoryAndSubcategory = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Posts fetched successfully",
-      table: table,
       posts: allPosts,
       totalPages,
       currentPage: Number(page)
