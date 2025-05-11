@@ -4,15 +4,8 @@ import sub_categories from "../models/sub_categories.js";
 // These function are used to create, update, and delete categories in the database
 
 export const createCategory = async (req, res) => {
-  const { name, slug, description, iconUrl, parentSlug } = req.body;
-
-  const parentCategory = await categories.findOne({ slug: parentSlug });
-  if (!parentCategory) {
-    return res.status(404).json({
-      success: false,
-      message: `Parent category with slug '${parentSlug}' not found`
-    });
-  }
+  const { name, slug, description, iconUrl, parentSlug, isVisibleOnHome } =
+    req.body;
 
   // Check if the category already exists
   const existingCategory = await categories.findOne({ slug });
@@ -23,14 +16,27 @@ export const createCategory = async (req, res) => {
     });
   }
 
+  const parentCategory = "";
+
+  if (parentSlug) {
+    parentCategory = await categories.findOne({ slug: parentSlug });
+    if (!parentCategory) {
+      return res.status(404).json({
+        success: false,
+        message: `Parent category with slug '${parentSlug}' not found`
+      });
+    }
+  }
+
   try {
     const newCategory = new categories({
       name,
       slug,
       description,
       iconUrl,
-      parentCategory: parentCategory._id,
-      parentSlug
+      parentCategory: parentCategory._id || null,
+      parentSlug,
+      isVisibleOnHome
     });
     await newCategory.save();
     return res.status(201).json({

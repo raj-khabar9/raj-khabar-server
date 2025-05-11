@@ -23,6 +23,10 @@ const categorySchema = new mongoose.Schema(
     iconUrl: {
       type: String,
       default: "https://example.com/default-icon.png" // Default icon URL
+    },
+    isVisibleOnHome: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }
