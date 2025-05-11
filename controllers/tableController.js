@@ -54,9 +54,22 @@ export const createTableStructure = async (req, res) => {
 };
 
 export const createTablePost = async (req, res) => {
-  const { name, slug, parentSlug, subcategorySlug, rowData } = req.body;
+  const {
+    name,
+    slug,
+    parentSlug,
+    subcategorySlug,
+    tableStructureSlug,
+    rowData
+  } = req.body;
 
-  if (!slug || !name || !parentSlug || !subcategorySlug) {
+  if (
+    !slug ||
+    !name ||
+    !parentSlug ||
+    !subcategorySlug ||
+    !tableStructureSlug
+  ) {
     return res.status(400).json({
       success: false,
       message: "Table slug, Name, Parent category, Sub category are required"
@@ -71,12 +84,14 @@ export const createTablePost = async (req, res) => {
   }
 
   try {
-    // check if the post already exists
-    const existingPost = await table_post.findOne({ slug: slug });
-    if (existingPost) {
+    // Check if the table structure columns count equqals to the rowData count
+    const tableStruct = await tableStructure.findOne({
+      slug: tableStructureSlug
+    });
+    if (!tableStruct) {
       return res.status(400).json({
         success: false,
-        message: `Post with slug ${slug} already exists`
+        message: `Table structure with slug ${tableStructureSlug} does not exist`
       });
     }
 
@@ -100,6 +115,19 @@ export const createTablePost = async (req, res) => {
       });
     }
 
+    // check if the post already exists
+    const existingPost = await table_post.findOne({
+      slug: slug,
+      parentCategory: category._id,
+      subCategory: subcategory._id
+    });
+    if (existingPost) {
+      return res.status(400).json({
+        success: false,
+        message: `Post with slug ${slug} already exists`
+      });
+    }
+
     if (rowData.isLink === true) {
       if (!rowData.link_type) {
         return res.status(400).json({
@@ -109,21 +137,10 @@ export const createTablePost = async (req, res) => {
       }
     }
 
-    // Check if the table structure columns count equqals to the rowData count
-    const tableType = await tableStructure.findOne({
-      slug: subcategory.type
-    });
-    if (!tableType) {
+    if (tableStruct.columns.length !== rowData.length) {
       return res.status(400).json({
         success: false,
-        message: `Table structure with slug ${subcategory.type} does not exist`
-      });
-    }
-
-    if (tableType.columns.length !== rowData.length) {
-      return res.status(400).json({
-        success: false,
-        message: `You can add only ${tableType.columns.length} rows in ${subcategory.type}`
+        message: `You can add only ${tableStruct.columns.length} rows in ${tableStruct}`
       });
     }
 
@@ -134,7 +151,9 @@ export const createTablePost = async (req, res) => {
       parentCategory: category._id,
       parentSlug: parentSlug,
       subcategorySlug: subcategorySlug,
-      subCategory: subcategory._id
+      subCategory: subcategory._id,
+      tableStructureSlug: tableStructureSlug,
+      table_Structure: tableStruct._id
     });
 
     await newPost.save();

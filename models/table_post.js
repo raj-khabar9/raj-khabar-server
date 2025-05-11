@@ -28,6 +28,14 @@ const tablePostSchema = new mongoose.Schema(
       ref: "SubCategory",
       required: true
     },
+    tableStructureSlug: {
+      type: String,
+      required: true
+    },
+    table_Structure: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TableStructure"
+    },
     rowData: [
       {
         row: {
@@ -40,7 +48,9 @@ const tablePostSchema = new mongoose.Schema(
         link_type: {
           type: String,
           enum: ["web-view", "external", "pdf"],
-          default: "internal"
+          required: function () {
+            return this.isLink === true;
+          }
         }
       }
     ]

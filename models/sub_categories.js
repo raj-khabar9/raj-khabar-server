@@ -15,7 +15,7 @@ const subCategorySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      default: "text"
+      enum: ["post", "table", "card"]
     },
     parentCategory: {
       type: mongoose.Schema.Types.ObjectId,
@@ -25,6 +25,12 @@ const subCategorySchema = new mongoose.Schema(
     parentSlug: {
       type: String,
       required: true
+    },
+    tableStructure: {
+      type: mongoose.Schema.Types.ObjectId
+    },
+    tableStructureSlug: {
+      type: String
     }
   },
   { timestamps: true }

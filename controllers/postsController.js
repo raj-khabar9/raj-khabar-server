@@ -13,6 +13,8 @@ export const createPost = async (req, res) => {
     imageUrl,
     tags,
     status,
+    type,
+    isVisibleInCarousel,
     publishedAt,
     updatedAt,
     createdAt
@@ -61,7 +63,7 @@ export const createPost = async (req, res) => {
     });
   }
 
-  if (subcategory.type != "posts") {
+  if (subcategory.type != "post") {
     return res.status(400).json({
       success: false,
       message: `Subcategory with slug ${subcategoryslug} is not a post type`,
@@ -82,6 +84,8 @@ export const createPost = async (req, res) => {
       imageUrl: imageUrl,
       tags: tags || [],
       status: status || "draft",
+      isVisibleInCarousel,
+      type,
       publishedAt: publishedAt || Date.now(),
       updatedAt: updatedAt || Date.now(),
       createdAt: createdAt || Date.now()
@@ -168,7 +172,7 @@ export const getPostsByCategoryAndSubcategory = async (req, res) => {
       });
     }
 
-    if (!subCategory.type || subCategory.type !== "posts") {
+    if (!subCategory.type || subCategory.type !== "post") {
       return res.status(404).json({
         success: false,
         message: `Subcategory with slug '${subCategorySlug}' is not a post type in category '${categorySlug}'`

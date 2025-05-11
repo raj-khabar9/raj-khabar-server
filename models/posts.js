@@ -56,6 +56,14 @@ const postSchema = new mongoose.Schema(
       enum: ["draft", "published", "archived"],
       default: "draft"
     },
+    type: {
+      type: String,
+      default: "post"
+    },
+    isVisibleInCarousel: {
+      type: Boolean,
+      default: false
+    },
     publishedAt: {
       type: Date,
       default: null // Date when the post is published

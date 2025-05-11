@@ -1,5 +1,6 @@
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
+import tableStructure from "../models/table-structure.js";
 
 // These function are used to create, update, and delete categories in the database
 
@@ -171,7 +172,8 @@ export const getAllCategories = async (req, res) => {
 // These function are used to create, update, and delete sub-categories in the database
 
 export const createSubcategory = async (req, res) => {
-  const { name, slug, description, type, parentSlug } = req.body;
+  const { name, slug, description, type, parentSlug, tableStructureSlug } =
+    req.body;
 
   if (!name || !slug || !parentSlug || !type) {
     return res.status(400).json({
@@ -191,12 +193,27 @@ export const createSubcategory = async (req, res) => {
     }
 
     // Step 2: Check for duplicate slug
-    const existingSubcategory = await sub_categories.findOne({ slug });
+    const existingSubcategory = await sub_categories.findOne({
+      slug: slug,
+      parentCategory: parentCategory._id
+    });
     if (existingSubcategory) {
       return res.status(400).json({
         success: false,
         message: `Subcategory with slug '${slug}' already exists`
       });
+    }
+
+    let tableStruct = null;
+
+    if (type === "table") {
+      tableStruct = await tableStructure.findOne({ slug: tableStructureSlug });
+      if (!tableStruct) {
+        return res.status(400).json({
+          success: false,
+          message: `Table structure with slug ${tableStructureSlug} does not exist`
+        });
+      }
     }
 
     // Step 3: Create subcategory
@@ -206,7 +223,9 @@ export const createSubcategory = async (req, res) => {
       description,
       type,
       parentCategory: parentCategory._id,
-      parentSlug // Store the slug of the parent category
+      parentSlug, // Store the slug of the parent category
+      tableStructure: tableStruct ? tableStruct._id : null,
+      tableStructureSlug
     });
 
     await newSubcategory.save();
