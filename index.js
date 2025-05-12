@@ -8,6 +8,7 @@ import { categoryRouter } from "./routes/categoryRoutes.js";
 import { postRouter } from "./routes/postRoutes.js";
 import { structureRouter } from "./routes/structureRoutes.js";
 import { tablePostRouter } from "./routes/tablePostRoutes.js";
+import { cardRouter } from "./routes/cardRoutes.js";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use("/api/category", categoryRouter);
 app.use("/api/post", postRouter);
 app.use("/api/structure", structureRouter);
 app.use("/api/table", tablePostRouter);
+app.use("/api/card", cardRouter);
 
 app.listen(PORT, () => {
   console.log("APP is running on port " + PORT);
