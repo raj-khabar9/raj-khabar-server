@@ -177,7 +177,6 @@ export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
   const { categorySlug } = req.params;
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
-  let table = null; // Initialize table to null
   const subCategorySlug = req.params.subcategorySlug;
 
   try {
@@ -207,13 +206,14 @@ export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
       });
     }
 
-    if (subCategory.type.includes("Table")) {
-      table = await tableStructure.findOne({ slug: subCategory.type });
-    } else if (subCategory.type.includes("card")) {
-      // Handle card type if needed
-    }
+    const table = await tableStructure.findOne({
+      slug: subCategory.tableStructureSlug
+    });
 
-    const fetchHeaderComponent = await header_component.find({});
+    const fetchHeaderComponent = await header_component.find({
+      parentCategory: category._id,
+      subCategory: subCategory._id
+    });
 
     const totalPosts = await table_post.countDocuments({
       parentCategory: category._id,
