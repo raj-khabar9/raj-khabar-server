@@ -2,6 +2,7 @@ import tableStructure from "../models/table-structure.js";
 import table_post from "../models/table_post.js";
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
+import header_component from "../models/header_component.js";
 
 export const createTableStructure = async (req, res) => {
   const { name, slug, description, columns } = req.body;
@@ -212,6 +213,8 @@ export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
       // Handle card type if needed
     }
 
+    const fetchHeaderComponent = await header_component.find({});
+
     const totalPosts = await table_post.countDocuments({
       parentCategory: category._id,
       subCategory: subCategory._id
@@ -233,6 +236,7 @@ export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
       success: true,
       message: "Posts fetched successfully",
       table: table,
+      header_component: fetchHeaderComponent,
       table_post: allPosts,
       totalPages,
       currentPage: Number(page)

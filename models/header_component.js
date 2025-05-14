@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const cardStructureSchema = new mongoose.Schema({
+const headerComponentSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
@@ -9,23 +9,19 @@ const cardStructureSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  topField: {
-    type: String
-  },
-  cardHeading: {
+  heading: {
     type: String,
     required: true
   },
-  middleField: {
-    type: String
-  },
   link: {
     link: {
-      type: String
+      type: String,
+      required: true
     },
     link_type: {
       type: String,
-      enum: ["pdf", "external", "web-view"]
+      enum: ["pdf", "external", "web-view"],
+      required: true
     }
   },
   parentSlug: {
@@ -34,7 +30,6 @@ const cardStructureSchema = new mongoose.Schema({
   },
   parentCategory: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Category",
     required: true
   },
   subCategorySlug: {
@@ -43,9 +38,8 @@ const cardStructureSchema = new mongoose.Schema({
   },
   subCategory: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "SubCategory",
     required: true
   }
 });
 
-export default mongoose.model("CardStructure", cardStructureSchema);
+export default mongoose.model("HeaderComponent", headerComponentSchema);

@@ -9,7 +9,7 @@ export const createCardPost = async (req, res) => {
     topField,
     cardHeading,
     middleField,
-    downloadLink,
+    link,
     parentSlug,
     subCategorySlug
   } = req.body;
@@ -69,7 +69,7 @@ export const createCardPost = async (req, res) => {
       topField,
       cardHeading,
       middleField,
-      downloadLink,
+      link,
       parentCategory: category._id,
       parentSlug,
       subCategory: subCategories._id,
