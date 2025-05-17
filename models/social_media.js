@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+const allowedSocialSlugs = [
+  "instagram",
+  "whatsapp",
+  "telegram",
+  "facebook",
+  "x",
+  "youtube"
+];
+
 const socialMediaSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -7,22 +16,21 @@ const socialMediaSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    enum: [
-      "instagram",
-      "whatsApp",
-      "telegram",
-      "facebook",
-      "x",
-      "youtube",
-      "privacy-policy",
-      "terms-of-services"
-    ],
-    required: true
+    required: true,
+    validate: {
+      validator: function (value) {
+        if (this.type === "social") {
+          return allowedSocialSlugs.includes(value);
+        }
+        return true; // Allow any slug if type is "policy"
+      },
+      message: (props) => `${props.value} is not a valid slug for type "social"`
+    }
   },
   type: {
     type: String,
     required: true,
-    enum: ["social", "privacy"]
+    enum: ["social", "policy"]
   },
   link: {
     type: String,
