@@ -1,9 +1,9 @@
 import social_media from "../models/social_media.js";
 
 export const createSocialMediaCard = async (req, res) => {
-  const { name, slug, link } = req.body;
+  const { name, slug, link, type } = req.body;
 
-  if (!name || !link || !slug) {
+  if (!name || !link || !slug || !type) {
     res.status(400).json({
       success: false,
       message: "name and link both are required fields"
@@ -25,10 +25,12 @@ export const createSocialMediaCard = async (req, res) => {
     const newSocialCard = new social_media({
       name,
       slug,
-      link
+      link,
+      type
     });
 
     await newSocialCard.save();
+    console.log("excecuting");
 
     return res.status(200).json({
       success: true,
@@ -37,7 +39,8 @@ export const createSocialMediaCard = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Internal Server Error "
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -53,7 +56,8 @@ export const getAllSocialMediaCards = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };

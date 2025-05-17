@@ -7,7 +7,22 @@ const socialMediaSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
+    enum: [
+      "instagram",
+      "whatsApp",
+      "telegram",
+      "facebook",
+      "x",
+      "youtube",
+      "privacy-policy",
+      "terms-of-services"
+    ],
     required: true
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ["social", "privacy"]
   },
   link: {
     type: String,

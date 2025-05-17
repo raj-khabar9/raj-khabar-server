@@ -212,6 +212,35 @@ export const getPostsByCategoryAndSubcategory = async (req, res) => {
   }
 };
 
+export const getCaroucelPost = async (req, res) => {
+  try {
+    // Fetch carousel posts with status 'Published' and visibility true
+    const getCaroucelPosts = await posts.find({
+      isVisibleInCarousel: true,
+      status: "published"
+    });
+
+    if (getCaroucelPosts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No posts available for carousel"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Posts fetched successfully",
+      posts: getCaroucelPosts
+    });
+  } catch (error) {
+    console.error("Error fetching carousel posts:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error"
+    });
+  }
+};
+
 export const searchPosts = async (req, res) => {
   const { query } = req.params;
   const { page = 1, limit = 10 } = req.query;

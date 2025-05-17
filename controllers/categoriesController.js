@@ -239,7 +239,8 @@ export const createSubcategory = async (req, res) => {
     console.error("Error in createSubcategory:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -278,7 +279,8 @@ export const updateSubcategory = async (req, res) => {
     console.error("Error in updateSubcategoryName:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -305,7 +307,8 @@ export const deleteSubcategory = async (req, res) => {
     console.error("Error in deleteSubcategory:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -337,7 +340,8 @@ export const getAllSubcategoriesOfCategory = async (req, res) => {
     console.error("Error in getAllSubcategoriesOfCategory:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -368,7 +372,8 @@ export const getCategoriesWithSubcategories = async (req, res) => {
     console.error("Aggregation Error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };

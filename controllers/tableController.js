@@ -49,7 +49,8 @@ export const createTableStructure = async (req, res) => {
     console.error("Error creating table:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -168,7 +169,8 @@ export const createTablePost = async (req, res) => {
     console.error("Error creating table post:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -245,7 +247,8 @@ export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
     console.error("Error in getPostsByCategoryAndSubcategory:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };

@@ -87,7 +87,8 @@ export const createCardPost = async (req, res) => {
     console.error("Error creating table post:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -147,7 +148,8 @@ export const getCardPostsByCategory = async (req, res) => {
     console.error("Error fetching cards:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -217,7 +219,8 @@ export const updateCardPost = async (req, res) => {
     console.error("Error updating card:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
@@ -277,7 +280,8 @@ export const deleteCardPost = async (req, res) => {
     console.error("Error deleting card:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error
     });
   }
 };
