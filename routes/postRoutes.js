@@ -18,5 +18,4 @@ postRouter.get(
 postRouter.get("/search/:query", searchPosts); // Assuming you want to use the same controller for searching posts
 postRouter.get("/posts", getPosts); // Assuming you want to use the same controller for getting posts
 
-
 export { postRouter };
