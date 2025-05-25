@@ -15,16 +15,8 @@ const postSchema = new mongoose.Schema(
       required: true
     },
     content: {
-      formate: {
-        type: String,
-        enum: ["html", "json"],
-        default: "json",
-        required: true
-      },
-      data: {
-        type: mongoose.Schema.Types.Mixed,
-        required: true
-      }
+      type: mongoose.Schema.Types.Mixed,
+      required: true
     },
     imageUrl: {
       type: String,

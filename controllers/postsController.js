@@ -1,108 +1,137 @@
 import posts from "../models/posts.js";
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
+import { uploadToS3 } from "../utils/uploadToS3.js";
 
 export const createPost = async (req, res) => {
-  const {
-    title,
-    slug,
-    content,
-    description,
-    categoryslug,
-    subcategoryslug,
-    imageUrl,
-    tags,
-    status,
-    type,
-    isVisibleInCarousel,
-    publishedAt,
-    updatedAt,
-    createdAt
-  } = req.body;
-
-  if (!title || !content || !categoryslug || !subcategoryslug || !slug) {
-    return res.status(400).json({
-      success: false,
-      message: "Title, slug, content, category, and subcategory are required"
-    });
-  }
-
   try {
-    const existingPost = await posts.findOne({ slug });
-    if (existingPost) {
-      return res.status(400).json({
-        success: false,
-        message: `Post with slug ${slug} already exists`
-      });
-    }
-  } catch (error) {
-    console.error("Error checking existing post:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error"
-    });
-  }
+    // Parse fields from req.body (for non-file fields)
 
-  // Check if the category and subcategory exist in the database
-  const category = await categories.findOne({ slug: categoryslug });
-  if (!category) {
-    return res.status(400).json({
-      success: false,
-      message: `Category with slug ${categoryslug} does not exist`
-    });
-  }
-  // Check if the subcategory exists in the database and belongs to the category
-  const subcategory = await sub_categories.findOne({
-    slug: subcategoryslug,
-    parentCategory: category._id
-  });
-  if (!subcategory) {
-    return res.status(400).json({
-      success: false,
-      message: `Subcategory with slug ${subcategoryslug} does not exist in category ${categoryslug}`
-    });
-  }
-
-  if (subcategory.type != "post") {
-    return res.status(400).json({
-      success: false,
-      message: `Subcategory with slug ${subcategoryslug} is not a post type`,
-      subcategoryType: subcategory.type
-    });
-  }
-
-  try {
-    const newPost = new posts({
+    const {
       title,
       slug,
       content,
       description,
-      category: category._id,
-      categorySlug: categoryslug,
-      subCategory: subcategory._id,
-      subCategorySlug: subcategoryslug,
-      imageUrl: imageUrl,
-      tags: tags || [],
-      status: status || "draft",
-      isVisibleInCarousel,
+      categoryslug,
+      subcategoryslug,
+      tags,
+      status,
       type,
-      publishedAt: publishedAt || Date.now(),
-      updatedAt: updatedAt || Date.now(),
-      createdAt: createdAt || Date.now()
-    });
+      isVisibleInCarousel,
+      publishedAt,
+      updatedAt,
+      createdAt
+    } = req.body;
 
-    await newPost.save();
+    console.log(title, slug, content, categoryslug, subcategoryslug);
 
-    return res.status(201).json({
-      success: true,
-      message: "Post created successfully",
-      post: newPost
+    if (!title || !content || !categoryslug || !subcategoryslug || !slug) {
+      return res.status(400).json({
+        success: false,
+        message: "Title, slug, content, category, and subcategory are required"
+      });
+    }
+
+    try {
+      const existingPost = await posts.findOne({ slug });
+      if (existingPost) {
+        return res.status(400).json({
+          success: false,
+          message: `Post with slug ${slug} already exists`
+        });
+      }
+    } catch (error) {
+      console.error("Error checking existing post:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error"
+      });
+    }
+
+    // Check if the category and subcategory exist in the database
+    const category = await categories.findOne({ slug: categoryslug });
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        message: `Category with slug ${categoryslug} does not exist`
+      });
+    }
+    // Check if the subcategory exists in the database and belongs to the category
+    const subcategory = await sub_categories.findOne({
+      slug: subcategoryslug,
+      parentCategory: category._id
     });
+    if (!subcategory) {
+      return res.status(400).json({
+        success: false,
+        message: `Subcategory with slug ${subcategoryslug} does not exist in category ${categoryslug}`
+      });
+    }
+
+    if (subcategory.type != "post") {
+      return res.status(400).json({
+        success: false,
+        message: `Subcategory with slug ${subcategoryslug} is not a post type`,
+        subcategoryType: subcategory.type
+      });
+    }
+    console.log("accessing before image upload");
+
+    // Upload image to S3 if present
+    let imageUrl = "";
+    if (req.file) {
+      try {
+        imageUrl = await uploadToS3(req.file); // Your uploadToS3 should return the S3 URL
+        console.log("Image uploaded to S3:", imageUrl);
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Image upload to S3 failed",
+          error: error.message
+        });
+      }
+    }
+
+    try {
+      const newPost = new posts({
+        title,
+        slug,
+        content,
+        description,
+        category: category._id,
+        categorySlug: categoryslug,
+        subCategory: subcategory._id,
+        subCategorySlug: subcategoryslug,
+        imageUrl,
+        tags: tags || [],
+        status: status || "draft",
+        isVisibleInCarousel,
+        type,
+        publishedAt: publishedAt || Date.now(),
+        updatedAt: updatedAt || Date.now(),
+        createdAt: createdAt || Date.now()
+      });
+
+      await newPost.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Post created successfully",
+        post: newPost
+      });
+    } catch (error) {
+      console.error("Error in createPost:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error"
+      });
+    }
   } catch (error) {
     console.error("Error in createPost:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
+      error: error.message
     });
   }
 };
@@ -283,6 +312,44 @@ export const searchPosts = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
+    });
+  }
+};
+
+export const getPostBySlug = async (req, res) => {
+  const { slug } = req.params;
+
+  if (!slug) {
+    return res.status(400).json({
+      success: false,
+      message: "Post slug is required"
+    });
+  }
+
+  try {
+    const post = await posts
+      .findOne({ slug })
+      .populate("category", "slug")
+      .populate("subCategory", "slug");
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: `Post with slug '${slug}' not found`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Post fetched successfully",
+      post
+    });
+  } catch (error) {
+    console.error("Error in getPostBySlug:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
     });
   }
 };
