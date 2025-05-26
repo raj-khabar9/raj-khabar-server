@@ -23,8 +23,6 @@ export const createPost = async (req, res) => {
       createdAt
     } = req.body;
 
-    console.log(title, slug, content, categoryslug, subcategoryslug);
-
     if (!title || !content || !categoryslug || !subcategoryslug || !slug) {
       return res.status(400).json({
         success: false,

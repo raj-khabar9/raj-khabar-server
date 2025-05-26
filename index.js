@@ -34,7 +34,7 @@ app.use(
       credentials: true
     },
     {
-      origin: "raj-khabar-server-production.up.railway.app",
+      origin: "https://raj-khabar-server-production.up.railway.app",
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true
     }
