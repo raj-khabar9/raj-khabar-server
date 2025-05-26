@@ -55,7 +55,10 @@ export const login = async (req, res) => {
       // Set the token in the cookie
       res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Set to true in production
+        secure: process.env.NODE_ENV === "production", // true in production
+        sameSite: "None", // <-- ADD THIS
+        domain:
+          process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined, // <-- ADD THIS for production
         maxAge: 24 * 60 * 60 * 1000 // 1 day
       });
       return res.status(200).json({
