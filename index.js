@@ -27,18 +27,22 @@ connectDB();
 app.use(cookieParser()); // Middleware to parse cookies
 app.use(express.json()); // Middleware to parse JSON request body
 app.use(
-  cors(
-    {
-      origin: "http://localhost:5173", // allow only your frontend origin
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      credentials: true
+  cors({
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "https://raj-khabar-server-production.up.railway.app"
+      ];
+      // allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
     },
-    {
-      origin: "https://raj-khabar-server-production.up.railway.app",
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      credentials: true
-    }
-  )
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+  })
 );
 
 //Mounting the authRouter on the app
