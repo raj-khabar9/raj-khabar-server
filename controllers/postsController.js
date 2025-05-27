@@ -153,8 +153,8 @@ export const getPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("category", "slug")
-      .populate("subCategory", "slug");
+      .populate("category", "slug name")
+      .populate("subCategory", "slug name");
 
     return res.status(200).json({
       success: true,
