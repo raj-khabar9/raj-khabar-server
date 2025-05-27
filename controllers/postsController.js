@@ -1,7 +1,7 @@
 import posts from "../models/posts.js";
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
-import { uploadToS3 } from "../utils/uploadToS3.js";
+import { uploadToS3, updateS3File } from "../utils/uploadToS3.js";
 
 export const createPost = async (req, res) => {
   try {
@@ -344,6 +344,155 @@ export const getPostBySlug = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getPostBySlug:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+
+export const deletePost = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Post ID is required"
+    });
+  }
+
+  try {
+    const post = await posts.findByIdAndDelete(id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: `Post with ID '${id}' not found`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Post deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error in deletePost:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+
+export const updatePost = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Post ID is required"
+    });
+  }
+
+  try {
+    const post = await posts.findById(id);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: `Post with ID '${id}' not found`
+      });
+    }
+
+    // Only allow specific fields to be updated
+    const updatableFields = [
+      "title",
+      "slug",
+      "content",
+      "description",
+      "category",
+      "categorySlug",
+      "subCategory",
+      "subCategorySlug",
+      "tags",
+      "status",
+      "isVisibleInCarousel",
+      "type",
+      "publishedAt"
+    ];
+    updatableFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        post[field] = req.body[field];
+      }
+    });
+
+    // --- Handle image update and upload to S3 ---
+    if (req.file) {
+      try {
+        const imageUrl = await updateS3File(req.file, post.imageUrl);
+        post.imageUrl = imageUrl;
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Image upload to S3 failed",
+          error: error.message
+        });
+      }
+    }
+
+    // --- Category/Subcategory validation (as you already have) ---
+    if (req.body.categorySlug || req.body.subCategorySlug) {
+      const categorySlug = req.body.categorySlug || post.categorySlug;
+      const subCategorySlug = req.body.subCategorySlug || post.subCategorySlug;
+
+      // Validate category
+      const category = await categories.findOne({ slug: categorySlug });
+      if (!category) {
+        return res.status(400).json({
+          success: false,
+          message: `Category with slug ${categorySlug} does not exist`
+        });
+      }
+
+      // Validate subcategory and its relation to category
+      const subcategory = await sub_categories.findOne({
+        slug: subCategorySlug,
+        parentCategory: category._id
+      });
+      if (!subcategory) {
+        return res.status(400).json({
+          success: false,
+          message: `Subcategory with slug ${subCategorySlug} does not exist in category ${categorySlug}`
+        });
+      }
+
+      if (subcategory.type !== "post") {
+        return res.status(400).json({
+          success: false,
+          message: `Subcategory with slug ${subCategorySlug} is not a post type`
+        });
+      }
+
+      // Update the references to the correct ObjectIds
+      post.category = category._id;
+      post.categorySlug = categorySlug;
+      post.subCategory = subcategory._id;
+      post.subCategorySlug = subCategorySlug;
+    }
+
+    // Always update updatedAt
+    post.updatedAt = Date.now();
+
+    await post.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Post updated successfully",
+      post
+    });
+  } catch (error) {
+    console.error("Error in updatePost:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",

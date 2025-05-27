@@ -3,8 +3,8 @@ import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 
-export const uploadToS3 = async (file) => {
-  const fileName = `${uuidv4()}${path.extname(file.originalname)}`;
+export const uploadToS3 = async (file, key = null) => {
+  const fileName = key || `${uuidv4()}${path.extname(file.originalname)}`;
 
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
@@ -39,5 +39,17 @@ export const deleteFromS3 = async (fileName) => {
   } catch (error) {
     console.error("Error deleting from S3:", error);
     throw new Error("Failed to delete file from S3");
+  }
+};
+
+export const updateS3File = async (newFile, oldUrl) => {
+  try {
+    const oldImageUrl = oldUrl;
+    const key = oldImageUrl.split(".amazonaws.com/")[1];
+    const newImageUrl = await uploadToS3(newFile, key);
+    return newImageUrl;
+  } catch (error) {
+    console.error("Error updating S3 file:", error);
+    throw new Error("Failed to update file in S3");
   }
 };
