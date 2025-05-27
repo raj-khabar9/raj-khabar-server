@@ -352,6 +352,44 @@ export const getPostBySlug = async (req, res) => {
   }
 };
 
+export const getPostById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Post ID is required"
+    });
+  }
+
+  try {
+    const post = await posts
+      .findById(id)
+      .populate("category", "slug")
+      .populate("subCategory", "slug");
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: `Post with ID '${id}' not found`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Post fetched successfully",
+      post
+    });
+  } catch (error) {
+    console.error("Error in getPostById:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+
 export const deletePost = async (req, res) => {
   const { id } = req.params;
 

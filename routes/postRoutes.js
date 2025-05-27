@@ -7,7 +7,8 @@ import {
   getCaroucelPost,
   getPostBySlug,
   deletePost,
-  updatePost
+  updatePost,
+  getPostById
 } from "../controllers/postsController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 import multer from "multer";
@@ -30,6 +31,7 @@ postRouter.get("/search/:query", searchPosts); // Assuming you want to use the s
 postRouter.get("/posts", getPosts); // Assuming you want to use the same controller for getting posts
 postRouter.get("/get-caroucel-posts", getCaroucelPost);
 postRouter.get("/posts/:slug", getPostBySlug); // Assuming you want to use the same controller for getting post by slug
+postRouter.get("/posts/id/:id", getPostById); // Assuming you want to use the same controller for getting post by ID
 postRouter.delete("/:id", authMiddleware, deletePost);
 postRouter.patch("/:id", upload.single("image"), authMiddleware, updatePost);
 
