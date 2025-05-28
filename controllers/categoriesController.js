@@ -1,12 +1,12 @@
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
 import tableStructure from "../models/table-structure.js";
+import { uploadToS3 } from "../utils/uploadToS3.js";
 
 // These function are used to create, update, and delete categories in the database
 
 export const createCategory = async (req, res) => {
-  const { name, slug, description, iconUrl, parentSlug, isVisibleOnHome } =
-    req.body;
+  const { name, slug, description, parentSlug, isVisibleOnHome } = req.body;
 
   // Check if the category already exists
   const existingCategory = await categories.findOne({ slug });
@@ -17,7 +17,21 @@ export const createCategory = async (req, res) => {
     });
   }
 
-  const parentCategory = "";
+  let iconUrl = "";
+  if (req.file) {
+    try {
+      iconUrl = await uploadToS3(req.file); // Your uploadToS3 should return the S3 URL
+      console.log("Icon uploaded to S3:", iconUrl);
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Icon upload to S3 failed",
+        error: error.message
+      });
+    }
+  }
+
+  let parentCategory = "";
 
   if (parentSlug) {
     parentCategory = await categories.findOne({ slug: parentSlug });

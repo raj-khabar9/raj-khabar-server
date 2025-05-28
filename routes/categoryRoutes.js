@@ -11,12 +11,24 @@ import {
   getCategoriesWithSubcategories
 } from "../controllers/categoriesController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
+import multer from "multer";
+const upload = multer();
 
 const categoryRouter = express.Router();
 
 // Category routes
-categoryRouter.post("/create-category", authMiddleware, createCategory);
-categoryRouter.put("/update-category/:slug", authMiddleware, updateCategory); // Assuming you want to use the same controller for updating
+categoryRouter.post(
+  "/create-category",
+  authMiddleware,
+  upload.single("icon"),
+  createCategory
+);
+categoryRouter.put(
+  "/update-category/:slug",
+  authMiddleware,
+  upload.single("icon"),
+  updateCategory
+); // Assuming you want to use the same controller for updating
 categoryRouter.delete("/delete-category/:slug", authMiddleware, deleteCategory); // Assuming you want to use the same controller for deleting
 
 //routes to get all categories
