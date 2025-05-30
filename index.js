@@ -29,7 +29,10 @@ app.use(express.json()); // Middleware to parse JSON request body
 app.use(
   cors({
     origin: function (origin, callback) {
-      const allowedOrigins = ["http://localhost:5173"];
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "https://rajkhabarfrontend-production.up.railway.app"
+      ];
       // allow requests with no origin (like mobile apps, curl, etc.)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
