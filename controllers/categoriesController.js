@@ -107,6 +107,33 @@ export const updateCategory = async (req, res) => {
   }
 };
 
+export const getCategoriesBySlug = async (req, res) => {
+  const { slug } = req.params; // Slug identifies the category
+
+  try {
+    const category = await categories.findOne({ slug });
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: `Category with slug '${slug}' not found`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Category fetched successfully",
+      category
+    });
+  } catch (error) {
+    console.error("Error in getCategoriesBySlug:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+
 export const deleteCategory = async (req, res) => {
   const { slug } = req.params;
   let deletedcatgories = [];

@@ -4,6 +4,7 @@ import {
   updateCategory,
   deleteCategory,
   createSubcategory,
+  getCategoriesBySlug,
   updateSubcategory,
   deleteSubcategory,
   getAllCategories,
@@ -33,7 +34,7 @@ categoryRouter.delete("/delete-category/:slug", authMiddleware, deleteCategory);
 
 //routes to get all categories
 categoryRouter.get("/all", getAllCategories); // Assuming you want to use the same controller for getting all categories
-
+categoryRouter.get("/get-category/:slug", getCategoriesBySlug);
 // Sub-category routes
 categoryRouter.post("/create-sub-category", authMiddleware, createSubcategory); // Assuming you want to use the same controller for creating sub-categories
 categoryRouter.put(
