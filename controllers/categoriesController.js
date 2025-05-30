@@ -1,7 +1,7 @@
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
 import tableStructure from "../models/table-structure.js";
-import { uploadToS3 } from "../utils/uploadToS3.js";
+import { uploadToS3, updateS3File } from "../utils/uploadToS3.js";
 
 // These function are used to create, update, and delete categories in the database
 
@@ -69,15 +69,8 @@ export const createCategory = async (req, res) => {
 };
 
 export const updateCategory = async (req, res) => {
-  const { slug } = req.params; // Slug identifies the category
-  const { name } = req.body; // New name to update
-
-  if (!name) {
-    return res.status(400).json({
-      success: false,
-      message: "Name is required to update the category"
-    });
-  }
+  const { slug } = req.params;
+  const { name, description, parentSlug, isVisibleOnHome } = req.body;
 
   try {
     // Find category by slug
@@ -89,17 +82,55 @@ export const updateCategory = async (req, res) => {
       });
     }
 
-    // Update the name
-    category.name = name; // Assuming slug remains the same for simplicity
+    // Handle S3 icon upload if file is present
+    let iconUrl = category.iconUrl || "";
+    if (req.file) {
+      try {
+        iconUrl = await updateS3File(req.file, category.iconUrl); // Your updateS3File should return the S3 URL
+        console.log("Icon uploaded to S3:", iconUrl);
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Icon upload to S3 failed",
+          error: error.message
+        });
+      }
+    }
+
+    // Update parent category if parentSlug is provided
+    let parentCategory = category.parentCategory || null;
+    if (parentSlug) {
+      const parentCat = await categories.findOne({ slug: parentSlug });
+      if (!parentCat) {
+        return res.status(404).json({
+          success: false,
+          message: `Parent category with slug '${parentSlug}' not found`
+        });
+      }
+      parentCategory = parentCat._id;
+    } else if (parentSlug === "") {
+      // If explicitly set to empty, remove parent
+      parentCategory = null;
+    }
+
+    // Update fields
+    if (name !== undefined) category.name = name;
+    if (description !== undefined) category.description = description;
+    if (iconUrl) category.iconUrl = iconUrl;
+    if (parentCategory !== undefined) category.parentCategory = parentCategory;
+    if (parentSlug !== undefined) category.parentSlug = parentSlug;
+    if (isVisibleOnHome !== undefined)
+      category.isVisibleOnHome = isVisibleOnHome;
+
     await category.save();
 
     return res.status(200).json({
       success: true,
-      message: "Category name updated successfully",
+      message: "Category updated successfully",
       category
     });
   } catch (error) {
-    console.error("Error in updateCategoryName:", error);
+    console.error("Error in updateCategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
