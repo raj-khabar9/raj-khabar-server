@@ -474,8 +474,7 @@ export const getCategoriesWithSubcategories = async (req, res) => {
       }
     ]);
 
-    res.status(200).json({result
-    });
+    res.status(200).json(result);
   } catch (error) {
     console.error("Aggregation Error:", error);
     res.status(500).json({
