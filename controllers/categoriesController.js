@@ -418,7 +418,7 @@ export const getAllSubcategoriesOfCategory = async (req, res) => {
   }
 };
 
-export const getCategoriesWithSubcategories = async (req, res) => {
+export const getCategoriesWithSubcategoriesForAdmin = async (req, res) => {
   try {
     const result = await categories.aggregate([
       {
@@ -443,6 +443,38 @@ export const getCategoriesWithSubcategories = async (req, res) => {
       success: true,
       message: "Categories with subcategories fetched successfully",
       categories: result
+    });
+  } catch (error) {
+    console.error("Aggregation Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+export const getCategoriesWithSubcategories = async (req, res) => {
+  try {
+    const result = await categories.aggregate([
+      {
+        $lookup: {
+          from: "subcategories", // must match your MongoDB collection name
+          localField: "slug",
+          foreignField: "parentSlug",
+          as: "subcategories"
+        }
+      },
+      {
+        $lookup: {
+          from: "categories", // must match your MongoDB collection name
+          localField: "slug",
+          foreignField: "parentSlug",
+          as: "maincategories"
+        }
+      }
+    ]);
+
+    res.status(200).json({result
     });
   } catch (error) {
     console.error("Aggregation Error:", error);

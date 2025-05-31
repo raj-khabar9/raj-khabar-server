@@ -9,7 +9,8 @@ import {
   deleteSubcategory,
   getAllCategories,
   getAllSubcategoriesOfCategory,
-  getCategoriesWithSubcategories
+  getCategoriesWithSubcategories,
+  getCategoriesWithSubcategoriesForAdmin
 } from "../controllers/categoriesController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 import multer from "multer";
@@ -50,5 +51,6 @@ categoryRouter.delete(
 
 categoryRouter.get("/all-subcategories/:slug", getAllSubcategoriesOfCategory);
 categoryRouter.get("/getcategories", getCategoriesWithSubcategories); // Assuming you want to use the same controller for getting all categories with subcategories
+categoryRouter.get("/getcategories/admin", getCategoriesWithSubcategoriesForAdmin); // Assuming you want to use the same controller for getting all categories with subcategories
 
 export { categoryRouter };
