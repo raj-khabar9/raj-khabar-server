@@ -346,7 +346,7 @@ export const getSubcategoryBySlug = async (req, res) => {
 };
 
 export const updateSubcategory = async (req, res) => {
-  const { slug } = req.params; // Slug identifies the subcategory
+  const { slug, description } = req.params; // Slug identifies the subcategory
   const { name } = req.body; // New name to update
 
   if (!name) {
@@ -367,12 +367,13 @@ export const updateSubcategory = async (req, res) => {
     }
 
     // Update the name
-    subcategory.name = name; // Assuming slug remains the same for simplicity
+    subcategory.name = name;
+    subcategory.description = description || subcategory.description;
     await subcategory.save();
 
     return res.status(200).json({
       success: true,
-      message: "Subcategory name updated successfully",
+      message: "Subcategory updated successfully",
       subcategory
     });
   } catch (error) {
