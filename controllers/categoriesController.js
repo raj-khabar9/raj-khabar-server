@@ -317,6 +317,34 @@ export const createSubcategory = async (req, res) => {
   }
 };
 
+export const getSubcategoryBySlug = async (req, res) => {
+  const { parentSlug, slug } = req.params; // Slug identifies the subcategory
+
+  try {
+    // Find subcategory by slug
+    const subcategory = await sub_categories.findOne({ slug, parentSlug });
+    if (!subcategory) {
+      return res.status(404).json({
+        success: false,
+        message: `Subcategory with slug '${slug}' not found`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Subcategory fetched successfully",
+      subcategory
+    });
+  } catch (error) {
+    console.error("Error in getSubcategoryBySlug:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+
 export const updateSubcategory = async (req, res) => {
   const { slug } = req.params; // Slug identifies the subcategory
   const { name } = req.body; // New name to update

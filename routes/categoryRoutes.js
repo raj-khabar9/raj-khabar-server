@@ -6,6 +6,7 @@ import {
   createSubcategory,
   getCategoriesBySlug,
   updateSubcategory,
+  getSubcategoryBySlug,
   deleteSubcategory,
   getAllCategories,
   getAllSubcategoriesOfCategory,
@@ -37,7 +38,8 @@ categoryRouter.delete("/delete-category/:slug", authMiddleware, deleteCategory);
 categoryRouter.get("/all", getAllCategories); // Assuming you want to use the same controller for getting all categories
 categoryRouter.get("/get-category/:slug", getCategoriesBySlug);
 // Sub-category routes
-categoryRouter.post("/create-sub-category", authMiddleware, createSubcategory); // Assuming you want to use the same controller for creating sub-categories
+categoryRouter.post("/create-sub-category", authMiddleware, createSubcategory);
+categoryRouter.get("/:parentSlug/get-sub-category/:slug", getSubcategoryBySlug); // Assuming you want to use the same controller for getting subcategory by slug
 categoryRouter.put(
   "/update-sub-category/:slug",
   authMiddleware,
@@ -51,6 +53,9 @@ categoryRouter.delete(
 
 categoryRouter.get("/all-subcategories/:slug", getAllSubcategoriesOfCategory);
 categoryRouter.get("/getcategories", getCategoriesWithSubcategories); // Assuming you want to use the same controller for getting all categories with subcategories
-categoryRouter.get("/getcategories/admin", getCategoriesWithSubcategoriesForAdmin); // Assuming you want to use the same controller for getting all categories with subcategories
+categoryRouter.get(
+  "/getcategories/admin",
+  getCategoriesWithSubcategoriesForAdmin
+); // Assuming you want to use the same controller for getting all categories with subcategories
 
 export { categoryRouter };
