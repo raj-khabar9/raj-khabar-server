@@ -135,7 +135,7 @@ export const createPost = async (req, res) => {
 };
 
 export const getPosts = async (req, res) => {
-  const { page = 1, limit = 10, status } = req.query;
+  const { page = 1, limit = 10, status, search } = req.query;
   const skip = (page - 1) * limit;
 
   const filters = {};
@@ -145,8 +145,13 @@ export const getPosts = async (req, res) => {
     filters.status = status;
   }
 
+  // 🔥 Add this for search support
+  if (search && search.trim() !== "") {
+    filters.title = { $regex: search, $options: "i" };
+  }
+
   try {
-    const totalPosts = await posts.countDocuments();
+    const totalPosts = await posts.countDocuments(filters);
     const totalPages = Math.ceil(totalPosts / limit);
     const allPosts = await posts
       .find(filters)

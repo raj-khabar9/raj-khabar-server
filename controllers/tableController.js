@@ -55,6 +55,49 @@ export const createTableStructure = async (req, res) => {
   }
 };
 
+export const getTableStructure = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const skip = (page - 1) * limit;
+
+    let filter = {};
+    if (search && search.trim() !== "") {
+      filter = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { slug: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } }
+        ]
+      };
+    }
+
+    const total = await tableStructure.countDocuments(filter);
+    const totalPages = Math.ceil(total / limit);
+
+    const tableStructures = await tableStructure
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    return res.status(200).json({
+      success: true,
+      message: "Table structures fetched successfully",
+      rowData: tableStructures,
+      total,
+      totalPages,
+      currentPage: Number(page)
+    });
+  } catch (error) {
+    console.error("Error fetching table structures:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+
 export const createTablePost = async (req, res) => {
   const {
     name,
