@@ -218,62 +218,118 @@ export const createTablePost = async (req, res) => {
   }
 };
 
-export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
-  const { categorySlug } = req.params;
-  const { page = 1, limit = 10 } = req.query;
+export const getTablePosts = async (req, res) => {
+  const { page = 1, limit = 10, search = "" } = req.query;
   const skip = (page - 1) * limit;
-  const subCategorySlug = req.params.subcategorySlug;
 
   try {
-    const category = await categories.findOne({ slug: categorySlug });
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: `Category with slug '${categorySlug}' not found`
-      });
+    let filter = {};
+
+    // Search filter
+    if (search && search.trim() !== "") {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } }
+      ];
     }
 
-    const subCategory = await sub_categories.findOne({
-      slug: subCategorySlug,
-      parentCategory: category._id
-    });
-    if (!subCategory) {
-      return res.status(404).json({
-        success: false,
-        message: `Subcategory with slug '${subCategorySlug}' not found in category '${categorySlug}'`
-      });
-    }
-
-    if (!subCategory.type) {
-      return res.status(404).json({
-        success: false,
-        message: `please add a type to the subcategory '${subCategorySlug}' in category '${categorySlug}'`
-      });
-    }
-
-    const table = await tableStructure.findOne({
-      slug: subCategory.tableStructureSlug
-    });
-
-    const fetchHeaderComponent = await header_component.find({
-      parentCategory: category._id,
-      subCategory: subCategory._id
-    });
-
-    const totalPosts = await table_post.countDocuments({
-      parentCategory: category._id,
-      subCategory: subCategory._id
-    });
+    const totalPosts = await table_post.countDocuments(filter);
     const totalPages = Math.ceil(totalPosts / limit);
 
     const allPosts = await table_post
-      .find({
-        parentCategory: category._id,
-        subCategory: subCategory._id
-      })
+      .find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit)
+      .limit(Number(limit))
+      .populate("parentCategory", "slug")
+      .populate("subCategory", "slug");
+
+    return res.status(200).json({
+      success: true,
+      message: "All table posts fetched successfully",
+      rowData: allPosts,
+      total: totalPosts,
+      totalPages,
+      currentPage: Number(page)
+    });
+  } catch (error) {
+    console.error("Error fetching all table posts:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+
+export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
+  const { categorySlug, subcategorySlug } = req.params;
+  const { page = 1, limit = 10, search = "" } = req.query;
+  const skip = (page - 1) * limit;
+
+  try {
+    let filter = {};
+    let table = null;
+    let fetchHeaderComponent = [];
+
+    // If both category and subcategory are provided, filter accordingly
+    if (categorySlug && subcategorySlug) {
+      const category = await categories.findOne({ slug: categorySlug });
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: `Category with slug '${categorySlug}' not found`
+        });
+      }
+
+      const subCategory = await sub_categories.findOne({
+        slug: subcategorySlug,
+        parentCategory: category._id
+      });
+      if (!subCategory) {
+        return res.status(404).json({
+          success: false,
+          message: `Subcategory with slug '${subcategorySlug}' not found in category '${categorySlug}'`
+        });
+      }
+
+      if (!subCategory.type) {
+        return res.status(404).json({
+          success: false,
+          message: `please add a type to the subcategory '${subcategorySlug}' in category '${categorySlug}'`
+        });
+      }
+
+      table = await tableStructure.findOne({
+        slug: subCategory.tableStructureSlug
+      });
+
+      fetchHeaderComponent = await header_component.find({
+        parentCategory: category._id,
+        subCategory: subCategory._id
+      });
+
+      filter.parentCategory = category._id;
+      filter.subCategory = subCategory._id;
+    }
+
+    // Search filter (applies to all cases)
+    if (search && search.trim() !== "") {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // Count and fetch posts
+    const totalPosts = await table_post.countDocuments(filter);
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    const allPosts = await table_post
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
       .populate("parentCategory", "slug")
       .populate("subCategory", "slug");
 
@@ -283,11 +339,12 @@ export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
       table: table,
       header_component: fetchHeaderComponent,
       table_post: allPosts,
+      total: totalPosts,
       totalPages,
       currentPage: Number(page)
     });
   } catch (error) {
-    console.error("Error in getPostsByCategoryAndSubcategory:", error);
+    console.error("Error in getTablePostsByCategoryAndSubcategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
