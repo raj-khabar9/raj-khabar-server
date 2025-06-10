@@ -262,6 +262,96 @@ export const getTablePosts = async (req, res) => {
   }
 };
 
+export const getTablePostBySlug = async (req, res) => {
+  const { slug } = req.params;
+
+  try {
+    const post = await table_post
+      .findOne({ slug })
+      .populate("parentCategory", "slug")
+      .populate("subCategory", "slug");
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: `Table post with slug '${slug}' not found`
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Table post fetched successfully",
+      rowData: post
+    });
+  } catch (error) {
+    console.error("Error fetching table post by slug:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+
+export const UpdateTablePost = async (req, res) => {
+  const {
+    name,
+    slug,
+    parentSlug,
+    subcategorySlug,
+    tableStructureSlug,
+    rowData
+  } = req.body;
+
+  if (
+    !slug ||
+    !name ||
+    !parentSlug ||
+    !subcategorySlug ||
+    !tableStructureSlug ||
+    !rowData ||
+    rowData.length < 2 
+  ) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "All fields are required and rowData must have at least 2 columns"
+    });
+  }
+
+  try {
+    const updatedPost = await table_post.findOneAndUpdate(
+      { slug },
+      {
+        name,
+        parentSlug,
+        subcategorySlug,
+        tableStructureSlug,
+        rowData
+      },
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res.status(404).json({
+        success: false,
+        message: `Table post with slug '${slug}' not found`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Table post updated successfully",
+      rowData: updatedPost
+    });
+  } catch (error) {
+    console.error("Error updating table post:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+
 export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
   const { categorySlug, subcategorySlug } = req.params;
   const { page = 1, limit = 10, search = "" } = req.query;
