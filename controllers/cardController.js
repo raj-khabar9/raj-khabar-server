@@ -154,6 +154,59 @@ export const getCardPostsByCategory = async (req, res) => {
   }
 };
 
+export const getAllCardPosts = async (req, res) => {
+  try {
+    const cards = await card_structure.find();
+
+    return res.status(200).json({
+      success: true,
+      message: "Cards fetched successfully",
+      data: cards
+    });
+  } catch (error) {
+    console.error("Error fetching cards:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+
+export const getCardPostBySlug = async (req, res) => {
+  const { slug } = req.params;
+
+  if (!slug) {
+    return res.status(400).json({
+      success: false,
+      message: "Slug is required"
+    });
+  }
+
+  try {
+    const card = await card_structure.findOne({ slug });
+    if (!card) {
+      return res.status(404).json({
+        success: false,
+        message: `Card with slug ${slug} not found`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Card fetched successfully",
+      data: card
+    });
+  } catch (error) {
+    console.error("Error fetching card:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+
 export const updateCardPost = async (req, res) => {
   const { slug, parentSlug, subCategorySlug } = req.params;
   const { name, topField, cardHeading, middleField, downloadLink } = req.body;

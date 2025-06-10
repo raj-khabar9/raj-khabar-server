@@ -2,6 +2,8 @@ import express from "express";
 
 import {
   createCardPost,
+  getAllCardPosts,
+  getCardPostBySlug,
   getCardPostsByCategory,
   updateCardPost,
   deleteCardPost
@@ -15,6 +17,10 @@ cardRouter.get(
   "/category/:parentSlug/subcategory/:subCategorySlug",
   getCardPostsByCategory
 );
+
+cardRouter.get("/get-all-card-posts", getAllCardPosts);
+
+cardRouter.get("/get-card-post/:slug", getCardPostBySlug);
 
 cardRouter.put(
   "/update/:parentSlug/:subCategorySlug/:slug",
