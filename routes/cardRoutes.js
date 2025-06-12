@@ -6,7 +6,8 @@ import {
   getCardPostBySlug,
   getCardPostsByCategory,
   updateCardPost,
-  deleteCardPost
+  deleteCardPost,
+  deleteCardById
 } from "../controllers/cardController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 
@@ -23,7 +24,7 @@ cardRouter.get("/get-all-card-posts", getAllCardPosts);
 cardRouter.get("/get-card-post/:slug", getCardPostBySlug);
 
 cardRouter.put(
-  "/update/:parentSlug/:subCategorySlug/:slug",
+  "/update/:slug",
   authMiddleware,
   updateCardPost
 );
@@ -33,5 +34,7 @@ cardRouter.delete(
   authMiddleware,
   deleteCardPost
 );
+
+cardRouter.delete("/delete/:id", authMiddleware, deleteCardById);
 
 export { cardRouter };

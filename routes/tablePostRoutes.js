@@ -5,6 +5,7 @@ import {
   getTablePosts,
   getTablePostBySlug,
   UpdateTablePost,
+  deleteTablePost,
   getTablePostsByCategoryAndSubcategory
 } from "../controllers/tableController.js";
 
@@ -20,6 +21,11 @@ tablePostRouter.put(
   "/update-table-post/:slug",
   authMiddleware,
   UpdateTablePost
+);
+tablePostRouter.delete(
+  "/delete-table-post/:id",
+  authMiddleware,
+  deleteTablePost
 );
 tablePostRouter.get(
   "/get-table-posts/category/:categorySlug/subcategory/:subcategorySlug",

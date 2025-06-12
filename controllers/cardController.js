@@ -208,50 +208,51 @@ export const getCardPostBySlug = async (req, res) => {
 };
 
 export const updateCardPost = async (req, res) => {
-  const { slug, parentSlug, subCategorySlug } = req.params;
-  const { name, topField, cardHeading, middleField, downloadLink } = req.body;
+  const { slug } = req.params;
+  const { name, topField, cardHeading, middleField, downloadLink, parentSlug, subCategorySlug } = req.body;
 
-  if (!slug || !parentSlug || !subCategorySlug) {
+  if (!slug) {
     return res.status(400).json({
       success: false,
-      message: "Slug, parentSlug, and subCategorySlug are required"
+      message: "Slug is required"
     });
   }
 
   try {
-    // Find category and subcategory
-    const category = await categories.findOne({ slug: parentSlug });
-    if (!category) {
-      return res.status(400).json({
-        success: false,
-        message: `Category with slug ${parentSlug} does not exist`
-      });
-    }
-
-    const subCategory = await sub_categories.findOne({
-      slug: subCategorySlug,
-      parentCategory: category._id
-    });
-
-    if (!subCategory || subCategory.type !== "card") {
-      return res.status(400).json({
-        success: false,
-        message: `Subcategory with slug ${subCategorySlug} is invalid or not of type card`
-      });
-    }
-
-    // Find the card
-    const card = await card_structure.findOne({
-      slug,
-      parentCategory: category._id,
-      subCategory: subCategory._id
-    });
-
+    // Find the card by slug
+    const card = await card_structure.findOne({ slug });
     if (!card) {
       return res.status(404).json({
         success: false,
-        message: `Card with slug ${slug} not found in the specified category and subcategory`
+        message: `Card with slug ${slug} not found`
       });
+    }
+
+    // Optionally update category/subcategory if provided
+    if (parentSlug) {
+      const category = await categories.findOne({ slug: parentSlug });
+      if (!category) {
+        return res.status(400).json({
+          success: false,
+          message: `Category with slug ${parentSlug} does not exist`
+        });
+      }
+      card.parentCategory = category._id;
+      card.parentSlug = parentSlug;
+    }
+    if (subCategorySlug && card.parentCategory) {
+      const subCategory = await sub_categories.findOne({
+        slug: subCategorySlug,
+        parentCategory: card.parentCategory
+      });
+      if (!subCategory || subCategory.type !== "card") {
+        return res.status(400).json({
+          success: false,
+          message: `Subcategory with slug ${subCategorySlug} is invalid or not of type card`
+        });
+      }
+      card.subCategory = subCategory._id;
+      card.subCategorySlug = subCategorySlug;
     }
 
     // Update allowed fields
@@ -321,6 +322,40 @@ export const deleteCardPost = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: `Card with slug ${slug} not found in the specified category and subcategory`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Card deleted successfully",
+      deletedCard
+    });
+  } catch (error) {
+    console.error("Error deleting card:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error
+    });
+  }
+};
+
+export const deleteCardById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Card id is required"
+    });
+  }
+
+  try {
+    const deletedCard = await card_structure.findByIdAndDelete(id);
+    if (!deletedCard) {
+      return res.status(404).json({
+        success: false,
+        message: `Card with id ${id} not found`
       });
     }
 
