@@ -15,8 +15,7 @@ export const uploadToS3 = async (file, key = null) => {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
     Key: fileName,
-    Body: file.buffer,
-    ContentType: file.mimetype
+    Body: file.buffer
   };
 
   try {

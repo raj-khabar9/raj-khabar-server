@@ -1,4 +1,4 @@
-import { uploadToS3, listS3Files } from "../utils/uploadToS3.js";
+import { uploadToS3, listS3Files, deleteFromS3 } from "../utils/uploadToS3.js";
 
 export const uploadImage = async (req, res) => {
   try {
@@ -27,5 +27,18 @@ export const listAllFiles = async (req, res) => {
       message: "Failed to list files",
       error
     });
+  }
+};
+
+export const deleteFile = async (req, res) => {
+  const { key } = req.params;
+  try {
+    await deleteFromS3(key);
+    return res.status(200).json({
+      success: true,
+      message: "File deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting file:", error);
   }
 };
