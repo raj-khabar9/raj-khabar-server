@@ -1,9 +1,10 @@
 import User from "../models/users.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { uploadToS3, updateS3File } from "../utils/uploadToS3.js";
 
 export const register = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, role } = req.body;
   try {
     const userExist = await User.findOne({ email });
     if (userExist) {
@@ -14,11 +15,26 @@ export const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
+    let profilePhoto = "";
+    if (req.file) {
+      try {
+        const imageUrl = await uploadToS3(req.file);
+        profilePhoto = imageUrl;
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Image upload to S3 failed",
+          error: error.message
+        });
+      }
+    }
 
     const newNser = new User({
       firstName,
       lastName,
       email,
+      profilePhoto,
+      role,
       password: hashedPassword // Store the hashed password
     });
 

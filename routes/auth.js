@@ -6,10 +6,12 @@ import {
   updatePassword
 } from "../controllers/auth.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
+import multer from "multer";
+const upload = multer();
 
 const authRouter = express.Router();
 
-authRouter.post("/register", register);
+authRouter.post("/register", upload.single("file"), register);
 authRouter.post("/login", login);
 authRouter.post("/logout", logout);
 authRouter.post("/updatepassword", authMiddleware, updatePassword);
