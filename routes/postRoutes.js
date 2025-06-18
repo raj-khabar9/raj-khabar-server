@@ -8,7 +8,8 @@ import {
   getPostBySlug,
   deletePost,
   updatePost,
-  getPostById
+  getPostById,
+  getRelatedPosts
 } from "../controllers/postsController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 import multer from "multer";
@@ -34,5 +35,6 @@ postRouter.get("/posts/:slug", getPostBySlug); // Assuming you want to use the s
 postRouter.get("/posts/id/:id", getPostById); // Assuming you want to use the same controller for getting post by ID
 postRouter.delete("/:id", authMiddleware, deletePost);
 postRouter.patch("/:id", upload.single("image"), authMiddleware, updatePost);
+postRouter.get("/related/:slug", getRelatedPosts);
 
 export { postRouter };

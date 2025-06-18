@@ -275,7 +275,12 @@ export const getCaroucelPost = async (req, res) => {
 
 export const searchPosts = async (req, res) => {
   const { query } = req.params;
-  const { page = 1, limit = 10 } = req.query;
+  const {
+    page = 1,
+    limit = 10,
+    categorySlug, // Optional: from query string
+    subcategorySlug // Optional: from query string
+  } = req.query;
   const skip = (page - 1) * limit;
 
   if (!query || query.trim() === "") {
@@ -285,19 +290,63 @@ export const searchPosts = async (req, res) => {
     });
   }
 
-  console.log("Query:", query);
+  console.log("Search Query:", query);
+  if (categorySlug) console.log("Category Slug:", categorySlug);
+  if (subcategorySlug) console.log("Subcategory Slug:", subcategorySlug);
 
   try {
     const filter = {
-      title: { $regex: query, $options: "i" } // Case-insensitive match
+      title: { $regex: query, $options: "i" }, 
+      status: "published" 
     };
+
+    let categoryObj = null;
+    let subCategoryObj = null;
+
+    if (categorySlug) {
+      categoryObj = await categories.findOne({ slug: categorySlug });
+      if (!categoryObj) {
+        return res.status(404).json({
+          success: false,
+          message: `Category with slug '${categorySlug}' not found`
+        });
+      }
+      filter.category = categoryObj._id;
+
+      // 2. Handle Subcategory Filter (only if categorySlug is also provided)
+      if (subcategorySlug) {
+        subCategoryObj = await sub_categories.findOne({
+          slug: subcategorySlug,
+          parentCategory: categoryObj._id // Ensure subcategory belongs to the parent category
+        });
+        if (!subCategoryObj) {
+          return res.status(404).json({
+            success: false,
+            message: `Subcategory with slug '${subcategorySlug}' not found in category '${categorySlug}'`
+          });
+        }
+        // Ensure the subcategory is of type 'post' if that's a requirement for your search
+        if (subCategoryObj.type !== "post") {
+            return res.status(400).json({
+                success: false,
+                message: `Subcategory '${subcategorySlug}' is not of type 'post' and cannot be searched for posts.`
+            });
+        }
+        filter.subCategory = subCategoryObj._id;
+      }
+    } else if (subcategorySlug) {
+      return res.status(400).json({
+        success: false,
+        message: "Category slug is required when searching by subcategory slug for posts."
+      });
+    }
 
     const totalPosts = await posts.countDocuments(filter);
     const totalPages = Math.ceil(totalPosts / limit);
 
     const allPosts = await posts
       .find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ publishedAt: -1, createdAt: -1 }) // Prioritize publishedAt for sorting
       .skip(skip)
       .limit(Number(limit))
       .populate("category", "slug")
@@ -536,6 +585,77 @@ export const updatePost = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in updatePost:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+
+export const getRelatedPosts = async (req, res) => {
+  const { slug } = req.params; 
+  const limit = parseInt(req.query.limit) || 5; 
+
+  if (!slug) {
+    return res.status(400).json({
+      success: false,
+      message: "Current post slug is required"
+    });
+  }
+
+  try {
+    const currentPost = await posts.findOne({ slug });
+
+    if (!currentPost) {
+      return res.status(404).json({
+        success: false,
+        message: `Post with slug '${slug}' not found`
+      });
+    }
+    const relatedPostsFilter = {
+      subCategory: currentPost.subCategory,
+      _id: { $ne: currentPost._id }, 
+      status: "published" 
+    };
+
+    let relatedPosts = await posts
+      .find(relatedPostsFilter)
+      .sort({ publishedAt: -1, createdAt: -1 }) 
+      .limit(limit)
+      .populate("category", "slug name")
+      .populate("subCategory", "slug name");
+
+    if (relatedPosts.length < limit) {
+      const postsNeeded = limit - relatedPosts.length;
+      const existingIds = relatedPosts.map(p => p._id).concat(currentPost._id);
+
+      const categoryRelatedPostsFilter = {
+        category: currentPost.category,
+        subCategory: { $ne: currentPost.subCategory }, 
+        _id: { $nin: existingIds }, 
+        status: "published"
+      };
+
+      const categoryRelatedPosts = await posts
+        .find(categoryRelatedPostsFilter)
+        .sort({ publishedAt: -1, createdAt: -1 })
+        .limit(postsNeeded)
+        .populate("category", "slug name")
+        .populate("subCategory", "slug name");
+      
+      relatedPosts = relatedPosts.concat(categoryRelatedPosts);
+    }
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Related posts fetched successfully",
+      posts: relatedPosts
+    });
+
+  } catch (error) {
+    console.error("Error in getRelatedPosts:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
