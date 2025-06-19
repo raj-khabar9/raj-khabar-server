@@ -290,10 +290,6 @@ export const searchPosts = async (req, res) => {
     });
   }
 
-  console.log("Search Query:", query);
-  if (categorySlug) console.log("Category Slug:", categorySlug);
-  if (subcategorySlug) console.log("Subcategory Slug:", subcategorySlug);
-
   try {
     const filter = {
       title: { $regex: query, $options: "i" }, 

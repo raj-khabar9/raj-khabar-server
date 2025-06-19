@@ -158,3 +158,26 @@ export const updatePassword = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    // req.user is set by your authMiddleware after verifying JWT
+    if (!req.user) {
+      return res
+        .status(401)
+        .json({ success: false, user: null, message: "Not authenticated" });
+    }
+    // Fetch the full user from DB (optional, for fresh data)
+    const user = await User.findById(req.user.userId).select("-password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, user: null, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, user });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, user: null, message: "Internal Server Error" });
+  }
+};

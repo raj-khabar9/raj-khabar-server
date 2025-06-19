@@ -74,9 +74,7 @@ export const listS3Files = async (req, res) => {
           Bucket: process.env.AWS_BUCKET_NAME,
           Key: item.Key
         });
-        const url = await getSignedUrl(clients3, getObjectCommand, {
-          expiresIn: 3600
-        }); // 1 hour
+        const url = await getSignedUrl(clients3, getObjectCommand); // 1 hour
         return {
           key: item.Key,
           url,
