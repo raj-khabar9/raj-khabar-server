@@ -209,7 +209,7 @@ export const getCardPostBySlug = async (req, res) => {
 
 export const updateCardPost = async (req, res) => {
   const { slug } = req.params;
-  const { name, topField, cardHeading, middleField, downloadLink, parentSlug, subCategorySlug } = req.body;
+  const { name, topField, cardHeading, middleField, link, parentSlug, subCategorySlug } = req.body;
 
   if (!slug) {
     return res.status(400).json({
@@ -260,7 +260,7 @@ export const updateCardPost = async (req, res) => {
     if (topField !== undefined) card.topField = topField;
     if (cardHeading !== undefined) card.cardHeading = cardHeading;
     if (middleField !== undefined) card.middleField = middleField;
-    if (downloadLink !== undefined) card.downloadLink = downloadLink;
+    if (link !== undefined) card.link = link;
 
     await card.save();
 
