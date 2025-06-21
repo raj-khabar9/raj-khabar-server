@@ -4,7 +4,8 @@ import {
   login,
   logout,
   updatePassword,
-  getCurrentUser
+  getCurrentUser,
+  updateProfile
 } from "../controllers/auth.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 import multer from "multer";
@@ -17,4 +18,10 @@ authRouter.post("/login", login);
 authRouter.post("/logout", logout);
 authRouter.post("/updatepassword", authMiddleware, updatePassword);
 authRouter.get("/me", authMiddleware, getCurrentUser);
+authRouter.put(
+  "/update-profile",
+  authMiddleware,
+  upload.single("file"),
+  updateProfile
+);
 export { authRouter };

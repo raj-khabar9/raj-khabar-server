@@ -181,3 +181,51 @@ export const getCurrentUser = async (req, res) => {
       .json({ success: false, user: null, message: "Internal Server Error" });
   }
 };
+
+export const updateProfile = async (req, res) => {
+  try {
+    // req.user is set by authMiddleware after verifying JWT
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Update fields if provided
+    if (req.body.firstName) user.firstName = req.body.firstName;
+    if (req.body.lastName) user.lastName = req.body.lastName;
+    if (req.body.email) user.email = req.body.email;
+
+    // Handle profile photo upload (if file is sent)
+    if (req.file) {
+      try {
+        const imageUrl = await uploadToS3(req.file);
+        user.profilePhoto = imageUrl;
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Image upload to S3 failed",
+          error: error.message
+        });
+      }
+    }
+
+    await user.save();
+    // Remove password from response
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: userObj
+    });
+  } catch (error) {
+    console.error("Error in updateProfile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error"
+    });
+  }
+};

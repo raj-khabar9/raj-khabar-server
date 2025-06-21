@@ -247,10 +247,13 @@ export const getPostsByCategoryAndSubcategory = async (req, res) => {
 export const getCaroucelPost = async (req, res) => {
   try {
     // Fetch carousel posts with status 'Published' and visibility true
-    const getCaroucelPosts = await posts.find({
-      isVisibleInCarousel: true,
-      status: "published"
-    });
+    const getCaroucelPosts = await posts
+      .find({
+        isVisibleInCarousel: true,
+        status: "published"
+      })
+      .populate("category", "slug name")
+      .populate("subCategory", "slug name");
 
     if (getCaroucelPosts.length === 0) {
       return res.status(404).json({
@@ -292,8 +295,8 @@ export const searchPosts = async (req, res) => {
 
   try {
     const filter = {
-      title: { $regex: query, $options: "i" }, 
-      status: "published" 
+      title: { $regex: query, $options: "i" },
+      status: "published"
     };
 
     let categoryObj = null;
@@ -309,11 +312,11 @@ export const searchPosts = async (req, res) => {
       }
       filter.category = categoryObj._id;
 
-      // 2. Handle Subcategory Filter (only if categorySlug is also provided)
       if (subcategorySlug) {
+        // Existing logic for specific subcategory
         subCategoryObj = await sub_categories.findOne({
           slug: subcategorySlug,
-          parentCategory: categoryObj._id // Ensure subcategory belongs to the parent category
+          parentCategory: categoryObj._id
         });
         if (!subCategoryObj) {
           return res.status(404).json({
@@ -321,19 +324,27 @@ export const searchPosts = async (req, res) => {
             message: `Subcategory with slug '${subcategorySlug}' not found in category '${categorySlug}'`
           });
         }
-        // Ensure the subcategory is of type 'post' if that's a requirement for your search
         if (subCategoryObj.type !== "post") {
-            return res.status(400).json({
-                success: false,
-                message: `Subcategory '${subcategorySlug}' is not of type 'post' and cannot be searched for posts.`
-            });
+          return res.status(400).json({
+            success: false,
+            message: `Subcategory '${subcategorySlug}' is not of type 'post' and cannot be searched for posts.`
+          });
         }
         filter.subCategory = subCategoryObj._id;
+      } else {
+        // No subcategorySlug: get all subcategories of type 'post' for this category
+        const subCategories = await sub_categories.find({
+          parentCategory: categoryObj._id,
+          type: "post"
+        });
+        const subCategoryIds = subCategories.map((sc) => sc._id);
+        filter.subCategory = { $in: subCategoryIds };
       }
     } else if (subcategorySlug) {
       return res.status(400).json({
         success: false,
-        message: "Category slug is required when searching by subcategory slug for posts."
+        message:
+          "Category slug is required when searching by subcategory slug for posts."
       });
     }
 
@@ -590,8 +601,8 @@ export const updatePost = async (req, res) => {
 };
 
 export const getRelatedPosts = async (req, res) => {
-  const { slug } = req.params; 
-  const limit = parseInt(req.query.limit) || 5; 
+  const { slug } = req.params;
+  const limit = parseInt(req.query.limit) || 5;
 
   if (!slug) {
     return res.status(400).json({
@@ -611,25 +622,27 @@ export const getRelatedPosts = async (req, res) => {
     }
     const relatedPostsFilter = {
       subCategory: currentPost.subCategory,
-      _id: { $ne: currentPost._id }, 
-      status: "published" 
+      _id: { $ne: currentPost._id },
+      status: "published"
     };
 
     let relatedPosts = await posts
       .find(relatedPostsFilter)
-      .sort({ publishedAt: -1, createdAt: -1 }) 
+      .sort({ publishedAt: -1, createdAt: -1 })
       .limit(limit)
       .populate("category", "slug name")
       .populate("subCategory", "slug name");
 
     if (relatedPosts.length < limit) {
       const postsNeeded = limit - relatedPosts.length;
-      const existingIds = relatedPosts.map(p => p._id).concat(currentPost._id);
+      const existingIds = relatedPosts
+        .map((p) => p._id)
+        .concat(currentPost._id);
 
       const categoryRelatedPostsFilter = {
         category: currentPost.category,
-        subCategory: { $ne: currentPost.subCategory }, 
-        _id: { $nin: existingIds }, 
+        subCategory: { $ne: currentPost.subCategory },
+        _id: { $nin: existingIds },
         status: "published"
       };
 
@@ -639,17 +652,15 @@ export const getRelatedPosts = async (req, res) => {
         .limit(postsNeeded)
         .populate("category", "slug name")
         .populate("subCategory", "slug name");
-      
+
       relatedPosts = relatedPosts.concat(categoryRelatedPosts);
     }
-
 
     return res.status(200).json({
       success: true,
       message: "Related posts fetched successfully",
       posts: relatedPosts
     });
-
   } catch (error) {
     console.error("Error in getRelatedPosts:", error);
     return res.status(500).json({

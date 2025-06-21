@@ -25,7 +25,7 @@ const cardStructureSchema = new mongoose.Schema({
     },
     link_type: {
       type: String,
-      enum: ["pdf", "external", "web-view"]
+      enum: ["pdf", "external", "web-view", "internal"]
     }
   },
   parentSlug: {
