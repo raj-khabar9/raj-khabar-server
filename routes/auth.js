@@ -11,7 +11,7 @@ import {
 } from "../controllers/auth.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 import multer from "multer";
-import { body, validationResult } from "express-validator";
+import { body } from "express-validator";
 const upload = multer();
 
 const authRouter = express.Router();
