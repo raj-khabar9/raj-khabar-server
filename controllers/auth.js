@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import { uploadToS3, updateS3File } from "../utils/uploadToS3.js";
 
 export const register = async (req, res) => {
-  const { firstName, lastName, email, password, role } = req.body;
+  const { firstName, lastName, email, password, role, isSuperAdmin, isActive } =
+    req.body;
   try {
     const userExist = await User.findOne({ email });
     if (userExist) {
@@ -12,6 +13,17 @@ export const register = async (req, res) => {
         success: false,
         message: `User already exists ${email}`
       });
+    }
+
+    // Check super admin limit
+    if (isSuperAdmin === true || isSuperAdmin === "true") {
+      const superAdminCount = await User.countDocuments({ isSuperAdmin: true });
+      if (superAdminCount >= 2) {
+        return res.status(403).json({
+          success: false,
+          message: "Only 2 super admins are allowed."
+        });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
@@ -29,16 +41,18 @@ export const register = async (req, res) => {
       }
     }
 
-    const newNser = new User({
+    const newUser = new User({
       firstName,
       lastName,
       email,
       profilePhoto,
       role,
+      isSuperAdmin: isSuperAdmin === true || isSuperAdmin === "true",
+      isActive: isActive !== undefined ? isActive : true,
       password: hashedPassword // Store the hashed password
     });
 
-    await newNser.save(); // Save the user to the database
+    await newUser.save(); // Save the user to the database
     return res
       .status(200)
       .json({ success: true, message: "User registered successfully" });
@@ -61,6 +75,15 @@ export const login = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
+    // Check if user is active
+    if (findUser.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Your account is deactivated. Please contact the administrator."
+      });
+    }
+
     // compare the password with the hashed password in the database
     const isPasswordValid = await bcrypt.compare(password, findUser.password);
     if (isPasswordValid) {
@@ -72,7 +95,7 @@ export const login = async (req, res) => {
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // true in production
-        sameSite: "None", // <-- ADD THIS
+        sameSite: "None",
         maxAge: 24 * 60 * 60 * 1000 // 1 day
       });
       return res.status(200).json({
@@ -200,7 +223,7 @@ export const updateProfile = async (req, res) => {
     // Handle profile photo upload (if file is sent)
     if (req.file) {
       try {
-        const imageUrl = await uploadToS3(req.file);
+        const imageUrl = await updateS3File(req.file);
         user.profilePhoto = imageUrl;
       } catch (error) {
         return res.status(500).json({
@@ -227,5 +250,84 @@ export const updateProfile = async (req, res) => {
       success: false,
       message: "Internal Server Error"
     });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    // req.user is set by authMiddleware after verifying JWT
+    const requestingUser = await User.findById(req.user.userId);
+    if (!requestingUser) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
+    }
+    if (!requestingUser.isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only super admins can view all users."
+      });
+    }
+
+    const users = await User.find().select("-password");
+    return res.status(200).json({
+      success: true,
+      users
+    });
+  } catch (error) {
+    console.error("Error in getAllUsers:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const manageUser = async (req, res) => {
+  try {
+    // Only super admin can manage users
+    const requestingUser = await User.findById(req.user.userId);
+    if (!requestingUser || !requestingUser.isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only super admins can manage users."
+      });
+    }
+
+    const { userId } = req.params; // user to update
+    const { role, isActive } = req.body;
+
+    // Prevent changing super admin status for other super admins
+    const userToUpdate = await User.findById(userId);
+    if (!userToUpdate) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    if (userToUpdate.isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot modify another super admin."
+      });
+    }
+
+    // Update allowed fields
+    if (role) userToUpdate.role = role;
+    if (typeof isActive === "boolean") userToUpdate.isActive = isActive;
+
+    await userToUpdate.save();
+
+    const userObj = userToUpdate.toObject();
+    delete userObj.password;
+
+    return res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      user: userObj
+    });
+  } catch (error) {
+    console.error("Error in manageUser:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
