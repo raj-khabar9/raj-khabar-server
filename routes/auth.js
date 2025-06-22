@@ -24,6 +24,7 @@ authRouter.post(
     body("firstName").isString().trim().escape(),
     body("lastName").isString().trim().escape()
   ],
+  upload.single("file"),
   register
 );
 authRouter.post("/login", login);
@@ -38,7 +39,7 @@ authRouter.put(
 );
 authRouter.get("/all-users", authMiddleware, getAllUsers);
 authRouter.put(
-  "/manage-user/:id",
+  "/manage-user/:userId",
   authMiddleware,
   [
     body("role").optional().isIn(["user", "admin", "superadmin"]),

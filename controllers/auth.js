@@ -215,11 +215,6 @@ export const updateProfile = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Update fields if provided
-    if (req.body.firstName) user.firstName = req.body.firstName;
-    if (req.body.lastName) user.lastName = req.body.lastName;
-    if (req.body.email) user.email = req.body.email;
-
     // Handle profile photo upload (if file is sent)
     if (req.file) {
       try {
@@ -295,6 +290,10 @@ export const manageUser = async (req, res) => {
 
     const { userId } = req.params; // user to update
     const { role, isActive } = req.body;
+    console.log("Requesting User:", requestingUser);
+    console.log("User to Update ID:", userId);
+    console.log("Role to Update:", role);
+    console.log("isActive to Update:", isActive);
 
     // Prevent changing super admin status for other super admins
     const userToUpdate = await User.findById(userId);
