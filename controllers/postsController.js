@@ -180,7 +180,7 @@ export const getPosts = async (req, res) => {
 // fetch posts by category slug and subcategory slug
 export const getPostsByCategoryAndSubcategory = async (req, res) => {
   const { categorySlug } = req.params;
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, status } = req.query;
   const skip = (page - 1) * limit;
   const subCategorySlug = req.params.subcategorySlug;
 
@@ -213,7 +213,8 @@ export const getPostsByCategoryAndSubcategory = async (req, res) => {
 
     const totalPosts = await posts.countDocuments({
       category: category._id,
-      subCategory: subCategory._id
+      subCategory: subCategory._id,
+      status: status || "published"
     });
     const totalPages = Math.ceil(totalPosts / limit);
 
