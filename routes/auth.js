@@ -41,7 +41,7 @@ authRouter.put(
   "/manage-user/:id",
   authMiddleware,
   [
-    body("role").optional().isIn(["superadmin"]),
+    body("role").optional().isIn(["user", "admin", "superadmin"]),
     body("isActive").optional().isBoolean()
   ],
   manageUser
