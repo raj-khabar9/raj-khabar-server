@@ -525,6 +525,7 @@ export const updatePost = async (req, res) => {
       "tags",
       "status",
       "isVisibleInCarousel",
+      "showAdOnLinks",
       "type",
       "publishedAt"
     ];
