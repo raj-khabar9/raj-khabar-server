@@ -496,6 +496,14 @@ export const updatePost = async (req, res) => {
     });
   }
 
+  // Normalize field names for update
+  if (req.body.categoryslug && !req.body.categorySlug) {
+    req.body.categorySlug = req.body.categoryslug;
+  }
+  if (req.body.subcategoryslug && !req.body.subCategorySlug) {
+    req.body.subCategorySlug = req.body.subcategoryslug;
+  }
+
   try {
     const post = await posts.findById(id);
     if (!post) {
@@ -508,7 +516,6 @@ export const updatePost = async (req, res) => {
     // Only allow specific fields to be updated
     const updatableFields = [
       "title",
-      "slug",
       "content",
       "description",
       "category",
@@ -541,7 +548,7 @@ export const updatePost = async (req, res) => {
       }
     }
 
-    // --- Category/Subcategory validation (as you already have) ---
+    // --- Category/Subcategory validation ---
     if (req.body.categorySlug || req.body.subCategorySlug) {
       const categorySlug = req.body.categorySlug || post.categorySlug;
       const subCategorySlug = req.body.subCategorySlug || post.subCategorySlug;
