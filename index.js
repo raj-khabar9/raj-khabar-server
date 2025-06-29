@@ -32,7 +32,7 @@ app.use(
     origin: function (origin, callback) {
       const allowedOrigins = [
         "http://localhost:5173",
-        "https://rajkhabarfrontend-production.up.railway.app"
+        "https://rajkhabarfrontend-production.up.railway.app",
       ];
       // allow requests with no origin (like mobile apps, curl, etc.)
       if (!origin || allowedOrigins.includes(origin)) {
@@ -41,8 +41,8 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
   })
 );
 
