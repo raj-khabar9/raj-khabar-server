@@ -33,8 +33,16 @@ export const createHeaderComponent = async (req, res) => {
       });
     }
 
+    // Check if subcategory type is "table"
+    if (subCategories.type !== "table") {
+      return res.status(400).json({
+        success: false,
+        message: `Header components can only be created for subcategories with type "table". Current type: ${subCategories.type}`
+      });
+    }
+
+    // Check if a header component already exists for this subcategory
     const existingComponent = await header_component.findOne({
-      slug: slug,
       parentCategory: category._id,
       subCategory: subCategories._id
     });
@@ -42,20 +50,19 @@ export const createHeaderComponent = async (req, res) => {
     if (existingComponent) {
       return res.status(400).json({
         success: false,
-        message: `Header Component with ${slug} slug already exist in the sub category`
+        message: `A header component already exists for this subcategory. Only one header component is allowed per subcategory.`
       });
     }
 
-    //count component posts
-    const componentCount = await header_component.countDocuments({
-      parentCategory: category._id,
-      subCategory: subCategories._id
+    // Check for duplicate slug across all components
+    const duplicateSlug = await header_component.findOne({
+      slug: slug
     });
-    console.log(componentCount);
-    if (componentCount > 1) {
+
+    if (duplicateSlug) {
       return res.status(400).json({
         success: false,
-        message: `One Sub Category can only have on Header Component.`
+        message: `Header Component with slug "${slug}" already exists. Please choose a different slug.`
       });
     }
 
@@ -246,34 +253,40 @@ export const updateHeaderComponent = async (req, res) => {
       });
     }
 
-    // Check for duplicate slug in the same subcategory (excluding current component)
-    const duplicateComponent = await header_component.findOne({
-      slug: slug,
-      parentCategory: category._id,
-      subCategory: subCategories._id,
-      _id: { $ne: id }
-    });
-
-    if (duplicateComponent) {
+    // Check if subcategory type is "table"
+    if (subCategories.type !== "table") {
       return res.status(400).json({
         success: false,
-        message: `Header Component with ${slug} slug already exists in the sub category`
+        message: `Header components can only be created for subcategories with type "table". Current type: ${subCategories.type}`
       });
     }
 
-    // Check component count limit (only if changing subcategory)
+    // Check for duplicate slug across all components (excluding current component)
+    const duplicateSlug = await header_component.findOne({
+      slug: slug,
+      _id: { $ne: id }
+    });
+
+    if (duplicateSlug) {
+      return res.status(400).json({
+        success: false,
+        message: `Header Component with slug "${slug}" already exists. Please choose a different slug.`
+      });
+    }
+
+    // Check if another header component already exists for this subcategory (only if changing subcategory)
     if (
       existingComponent.subCategory.toString() !== subCategories._id.toString()
     ) {
-      const componentCount = await header_component.countDocuments({
+      const existingComponentForSubcategory = await header_component.findOne({
         parentCategory: category._id,
         subCategory: subCategories._id
       });
 
-      if (componentCount >= 1) {
+      if (existingComponentForSubcategory) {
         return res.status(400).json({
           success: false,
-          message: "One Sub Category can only have one Header Component"
+          message: `A header component already exists for this subcategory. Only one header component is allowed per subcategory.`
         });
       }
     }
