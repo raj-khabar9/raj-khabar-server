@@ -13,6 +13,9 @@ import { headerComponentRouter } from "./routes/headerComponentRoutes.js";
 import { socialRoute } from "./routes/socialRoutes.js";
 import { s3Router } from "./routes/s3Routes.js";
 import { centralizedRouter } from "./routes/centralizedRoutes.js";
+import { deviceRouter } from "./routes/deviceRoutes.js";
+import { notificationRouter } from "./routes/notificationRoutes.js";
+import { bulkDeleteRouter } from "./routes/bulkDeleteRoutes.js";
 
 dotenv.config();
 
@@ -57,6 +60,9 @@ app.use("/api/component", headerComponentRouter);
 app.use("/api/social", socialRoute);
 app.use("/api/s3", s3Router);
 app.use("/api/centralized", centralizedRouter);
+app.use("/api/device", deviceRouter);
+app.use("/api/notification", notificationRouter);
+app.use("/api/bulk-delete", bulkDeleteRouter);
 
 app.listen(PORT, () => {
   console.log("APP is running on port " + PORT);

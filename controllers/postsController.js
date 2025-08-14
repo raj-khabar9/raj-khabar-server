@@ -2,6 +2,7 @@ import posts from "../models/posts.js";
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
 import { uploadToS3, updateS3File } from "../utils/uploadToS3.js";
+import { sendPostNotification } from "../utils/firebaseNotification.js";
 
 export const createPost = async (req, res) => {
   try {
@@ -111,6 +112,17 @@ export const createPost = async (req, res) => {
       });
 
       await newPost.save();
+
+      // Send push notification to all registered devices
+      try {
+        if (status === "published") {
+          const notificationResult = await sendPostNotification(newPost);
+          console.log("Push notification result:", notificationResult);
+        }
+      } catch (notificationError) {
+        console.error("Error sending push notification:", notificationError);
+        // Don't fail the post creation if notification fails
+      }
 
       return res.status(200).json({
         success: true,
