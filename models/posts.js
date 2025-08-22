@@ -56,6 +56,10 @@ const postSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    sendNotification: {
+      type: Boolean,
+      default: false
+    },
     publishedAt: {
       type: Date,
       default: null // Date when the post is published

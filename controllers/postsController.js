@@ -19,6 +19,7 @@ export const createPost = async (req, res) => {
       status,
       type,
       isVisibleInCarousel,
+      sendNotification,
       publishedAt,
       updatedAt,
       createdAt
@@ -105,6 +106,7 @@ export const createPost = async (req, res) => {
         tags: tags || [],
         status: status || "draft",
         isVisibleInCarousel,
+        sendNotification: sendNotification || false,
         type,
         publishedAt: publishedAt || Date.now(),
         updatedAt: updatedAt || Date.now(),
@@ -116,8 +118,10 @@ export const createPost = async (req, res) => {
       // Send push notification to all registered devices
       try {
         if (status === "published") {
-          const notificationResult = await sendPostNotification(newPost);
-          console.log("Push notification result:", notificationResult);
+          if (sendNotification) {
+            const notificationResult = await sendPostNotification(newPost);
+            console.log("Push notification result:", notificationResult);
+          }
         }
       } catch (notificationError) {
         console.error("Error sending push notification:", notificationError);
@@ -537,6 +541,7 @@ export const updatePost = async (req, res) => {
       "tags",
       "status",
       "isVisibleInCarousel",
+      "sendNotification",
       "showAdOnLinks",
       "type",
       "publishedAt"
