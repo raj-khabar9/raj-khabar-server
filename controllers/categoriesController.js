@@ -21,7 +21,6 @@ export const createCategory = async (req, res) => {
   if (req.file) {
     try {
       iconUrl = await uploadToS3(req.file); // Your uploadToS3 should return the S3 URL
-      console.log("Icon uploaded to S3:", iconUrl);
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -60,7 +59,6 @@ export const createCategory = async (req, res) => {
       category: newCategory
     });
   } catch (error) {
-    console.error("Error in createCategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
@@ -87,7 +85,6 @@ export const updateCategory = async (req, res) => {
     if (req.file) {
       try {
         iconUrl = await updateS3File(req.file, category.iconUrl); // Your updateS3File should return the S3 URL
-        console.log("Icon uploaded to S3:", iconUrl);
       } catch (error) {
         return res.status(500).json({
           success: false,
@@ -130,7 +127,6 @@ export const updateCategory = async (req, res) => {
       category
     });
   } catch (error) {
-    console.error("Error in updateCategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
@@ -156,7 +152,6 @@ export const getCategoriesBySlug = async (req, res) => {
       category
     });
   } catch (error) {
-    console.error("Error in getCategoriesBySlug:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -183,13 +178,9 @@ export const deleteCategory = async (req, res) => {
       parentCategory: category._id
     });
     if (deletedSubcategories.deletedCount > 0) {
-      console.log(`Deleted ${deletedSubcategories.deletedCount} subcategories`);
       deletedcatgories.push(deletedSubcategories);
-    } else {
-      console.log("No subcategories found for deletion");
     }
   } catch (error) {
-    console.error("Error in deleting subcategories:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error while deleting subcategories"
@@ -208,7 +199,6 @@ export const deleteCategory = async (req, res) => {
 
     deletedcatgories.push(deletedCategory);
   } catch (error) {
-    console.error("Error in deleteCategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
@@ -233,7 +223,6 @@ export const getAllCategories = async (req, res) => {
       categories: allCategories
     });
   } catch (error) {
-    console.error("Error in getAllCategories:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
@@ -308,7 +297,6 @@ export const createSubcategory = async (req, res) => {
       subcategory: newSubcategory
     });
   } catch (error) {
-    console.error("Error in createSubcategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -336,7 +324,6 @@ export const getSubcategoryBySlug = async (req, res) => {
       subcategory
     });
   } catch (error) {
-    console.error("Error in getSubcategoryBySlug:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -377,7 +364,6 @@ export const updateSubcategory = async (req, res) => {
       subcategory
     });
   } catch (error) {
-    console.error("Error in updateSubcategoryName:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -405,7 +391,6 @@ export const deleteSubcategory = async (req, res) => {
       subcategory: deletedSubcategory
     });
   } catch (error) {
-    console.error("Error in deleteSubcategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -438,7 +423,6 @@ export const getAllSubcategoriesOfCategory = async (req, res) => {
       subcategories
     });
   } catch (error) {
-    console.error("Error in getAllSubcategoriesOfCategory:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -474,7 +458,6 @@ export const getCategoriesWithSubcategoriesForAdmin = async (req, res) => {
       categories: result
     });
   } catch (error) {
-    console.error("Aggregation Error:", error);
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -505,7 +488,6 @@ export const getCategoriesWithSubcategories = async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
-    console.error("Aggregation Error:", error);
     res.status(500).json({
       success: false,
       message: "Internal Server Error",

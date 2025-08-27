@@ -117,14 +117,22 @@ export const createPost = async (req, res) => {
 
       // Send push notification to all registered devices
       try {
+        console.log("📝 Post notification check - Status:", status, "SendNotification:", sendNotification);
         if (status === "published") {
+          console.log("✅ Post is published, checking sendNotification flag...");
           if (sendNotification) {
+            console.log("🔔 Sending notification for new post:", newPost.title);
+            
             const notificationResult = await sendPostNotification(newPost);
-            console.log("Push notification result:", notificationResult);
+            console.log("📤 Push notification result:", notificationResult);
+          } else {
+            console.log("❌ Notification not sent - sendNotification is false");
           }
+        } else {
+          console.log("❌ Notification not sent - post status is:", status, "(needs to be 'published')");
         }
       } catch (notificationError) {
-        console.error("Error sending push notification:", notificationError);
+        console.error("💥 Error sending push notification:", notificationError);
         // Don't fail the post creation if notification fails
       }
 
@@ -529,6 +537,9 @@ export const updatePost = async (req, res) => {
       });
     }
 
+    // Store the original status before making changes
+    const originalStatus = post.status;
+
     // Only allow specific fields to be updated
     const updatableFields = [
       "title",
@@ -606,10 +617,27 @@ export const updatePost = async (req, res) => {
       post.subCategorySlug = subCategorySlug;
     }
 
+    // Check if post is being published for the first time
+    const wasUnpublished = originalStatus !== "published";
+    const isNowPublished = post.status === "published";
+
     // Always update updatedAt
     post.updatedAt = Date.now();
 
     await post.save();
+
+    // Send push notification if post is being published for the first time
+    try {
+      if (wasUnpublished && isNowPublished) {
+        if (post.sendNotification) {
+          const notificationResult = await sendPostNotification(post);
+          console.log("Push notification result for updated post:", notificationResult);
+        }
+      }
+    } catch (notificationError) {
+      console.error("Error sending push notification for updated post:", notificationError);
+      // Don't fail the post update if notification fails
+    }
 
     return res.status(200).json({
       success: true,

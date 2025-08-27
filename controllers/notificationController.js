@@ -195,6 +195,39 @@ export const getNotificationStats = async (req, res) => {
   }
 };
 
+// Debug endpoint to test post notifications
+export const debugPostNotification = async (req, res) => {
+  try {
+    console.log('🐛 Debug post notification endpoint called');
+    
+    // Mock post object for testing
+    const mockPost = {
+      _id: '507f1f77bcf86cd799439011',
+      title: 'Debug Test Post',
+      description: 'This is a test notification from debug endpoint',
+      slug: 'debug-test-post',
+      categorySlug: 'test-category',
+      subCategorySlug: 'test-subcategory'
+    };
+    
+    console.log('🧪 Calling sendPostNotification with mock post...');
+    const result = await sendPostNotification(mockPost);
+    
+    return res.status(200).json({
+      success: true,
+      message: "Debug post notification test completed",
+      result
+    });
+  } catch (error) {
+    console.error('❌ Error in debug post notification:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
 // Bulk update notification preferences
 export const bulkUpdateNotificationPreferences = async (req, res) => {
   try {

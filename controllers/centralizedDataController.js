@@ -80,7 +80,6 @@ export const getCategoryOverview = async (req, res) => {
       cardPosts
     });
   } catch (error) {
-    console.error("Error in getCategoryOverview:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });

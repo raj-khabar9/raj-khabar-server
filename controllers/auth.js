@@ -57,7 +57,6 @@ export const register = async (req, res) => {
       .status(200)
       .json({ success: true, message: "User registered successfully" });
   } catch (error) {
-    console.error("Error in register:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
@@ -110,7 +109,6 @@ export const login = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
   } catch (error) {
-    console.error("Error in login:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
@@ -127,7 +125,6 @@ export const logout = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Logout successful" });
   } catch (error) {
-    console.error("Error in logout:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
@@ -175,7 +172,6 @@ export const updatePassword = async (req, res) => {
       message: "Password updated successfully"
     });
   } catch (error) {
-    console.error("Error in updatePassword:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
@@ -240,7 +236,6 @@ export const updateProfile = async (req, res) => {
       user: userObj
     });
   } catch (error) {
-    console.error("Error in updateProfile:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error"
@@ -270,7 +265,6 @@ export const getAllUsers = async (req, res) => {
       users
     });
   } catch (error) {
-    console.error("Error in getAllUsers:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
@@ -290,10 +284,6 @@ export const manageUser = async (req, res) => {
 
     const { userId } = req.params; // user to update
     const { role, isActive } = req.body;
-    console.log("Requesting User:", requestingUser);
-    console.log("User to Update ID:", userId);
-    console.log("Role to Update:", role);
-    console.log("isActive to Update:", isActive);
 
     // Prevent changing super admin status for other super admins
     const userToUpdate = await User.findById(userId);
@@ -324,7 +314,6 @@ export const manageUser = async (req, res) => {
       user: userObj
     });
   } catch (error) {
-    console.error("Error in manageUser:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });

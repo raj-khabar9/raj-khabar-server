@@ -45,7 +45,6 @@ export const registerDevice = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Error in device registration:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -84,7 +83,6 @@ export const updateFCMToken = async (req, res) => {
       device
     });
   } catch (error) {
-    console.error("Error updating FCM token:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -123,7 +121,6 @@ export const updateNotificationPreferences = async (req, res) => {
       device
     });
   } catch (error) {
-    console.error("Error updating notification preferences:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -143,7 +140,6 @@ export const getAllDevices = async (req, res) => {
       devices
     });
   } catch (error) {
-    console.error("Error fetching devices:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -171,7 +167,6 @@ export const getDeviceById = async (req, res) => {
       device
     });
   } catch (error) {
-    console.error("Error fetching device:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -200,7 +195,6 @@ export const deleteDevice = async (req, res) => {
       device
     });
   } catch (error) {
-    console.error("Error deleting device:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -228,7 +222,6 @@ export const getDevicesCount = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching devices count:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

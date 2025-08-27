@@ -38,7 +38,6 @@ export const bulkDeletePosts = async (req, res) => {
       requestedCount: ids.length
     });
   } catch (error) {
-    console.error("Error in bulkDeletePosts:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -77,7 +76,6 @@ export const bulkDeleteCards = async (req, res) => {
       requestedCount: ids.length
     });
   } catch (error) {
-    console.error("Error in bulkDeleteCards:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -116,7 +114,6 @@ export const bulkDeleteTablePosts = async (req, res) => {
       requestedCount: ids.length
     });
   } catch (error) {
-    console.error("Error in bulkDeleteTablePosts:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -192,7 +189,6 @@ export const bulkDeleteTableStructures = async (req, res) => {
       requestedCount: ids.length
     });
   } catch (error) {
-    console.error("Error in bulkDeleteTableStructures:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -293,7 +289,6 @@ export const bulkDeleteCategories = async (req, res) => {
       errors: errors.length > 0 ? errors : undefined
     });
   } catch (error) {
-    console.error("Error in bulkDeleteCategories:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -388,7 +383,6 @@ export const bulkDeleteSubcategories = async (req, res) => {
       errors: errors.length > 0 ? errors : undefined
     });
   } catch (error) {
-    console.error("Error in bulkDeleteSubcategories:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -427,7 +421,6 @@ export const bulkDeleteSocialMedia = async (req, res) => {
       requestedCount: ids.length
     });
   } catch (error) {
-    console.error("Error in bulkDeleteSocialMedia:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -466,7 +459,6 @@ export const bulkDeleteHeaderComponents = async (req, res) => {
       requestedCount: ids.length
     });
   } catch (error) {
-    console.error("Error in bulkDeleteHeaderComponents:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -519,7 +511,6 @@ export const universalBulkDelete = async (req, res) => {
         });
     }
   } catch (error) {
-    console.error("Error in universalBulkDelete:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -581,7 +572,6 @@ export const getContentStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error in getContentStatistics:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",

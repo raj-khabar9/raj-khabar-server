@@ -84,7 +84,6 @@ export const createCardPost = async (req, res) => {
       rowData: newCard
     });
   } catch (error) {
-    console.error("Error creating table post:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -145,7 +144,6 @@ export const getCardPostsByCategory = async (req, res) => {
       data: cards
     });
   } catch (error) {
-    console.error("Error fetching cards:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -164,7 +162,6 @@ export const getAllCardPosts = async (req, res) => {
       data: cards
     });
   } catch (error) {
-    console.error("Error fetching cards:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -198,7 +195,6 @@ export const getCardPostBySlug = async (req, res) => {
       data: card
     });
   } catch (error) {
-    console.error("Error fetching card:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -270,7 +266,6 @@ export const updateCardPost = async (req, res) => {
       updatedCard: card
     });
   } catch (error) {
-    console.error("Error updating card:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -331,7 +326,6 @@ export const deleteCardPost = async (req, res) => {
       deletedCard
     });
   } catch (error) {
-    console.error("Error deleting card:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -365,7 +359,6 @@ export const deleteCardById = async (req, res) => {
       deletedCard
     });
   } catch (error) {
-    console.error("Error deleting card:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",

@@ -28,13 +28,23 @@ try {
 // Function to send notification to a single device
 export const sendNotificationToDevice = async (fcmToken, notification) => {
   try {
+    // Ensure all data values are strings (FCM requirement)
+    const sanitizedData = {};
+    if (notification.data) {
+      Object.keys(notification.data).forEach(key => {
+        if (notification.data[key] !== null && notification.data[key] !== undefined) {
+          sanitizedData[key] = notification.data[key].toString();
+        }
+      });
+    }
+    
     const message = {
       token: fcmToken,
       notification: {
         title: notification.title,
         body: notification.body,
       },
-      data: notification.data || {},
+      data: sanitizedData,
       android: {
         notification: {
           sound: 'default',
@@ -69,12 +79,22 @@ export const sendNotificationToMultipleDevices = async (fcmTokens, notification)
       return { success: false, error: 'No FCM tokens provided' };
     }
 
+    // Ensure all data values are strings (FCM requirement)
+    const sanitizedData = {};
+    if (notification.data) {
+      Object.keys(notification.data).forEach(key => {
+        if (notification.data[key] !== null && notification.data[key] !== undefined) {
+          sanitizedData[key] = notification.data[key].toString();
+        }
+      });
+    }
+
     const message = {
       notification: {
         title: notification.title,
         body: notification.body,
       },
-      data: notification.data || {},
+      data: sanitizedData,
       android: {
         notification: {
           sound: 'default',
@@ -124,28 +144,38 @@ export const sendNotificationToMultipleDevices = async (fcmTokens, notification)
 // Function to send notification to all registered devices
 export const sendNotificationToAllDevices = async (notification) => {
   try {
+    console.log('🔍 Looking for registered devices...');
+    
     // Get all devices with FCM tokens and notifications enabled
     const devices = await DeviceRegistration.find({
       fcmToken: { $exists: true, $ne: null },
       notificationEnabled: true
     });
-
+    
     if (devices.length === 0) {
-      console.log('No devices found with FCM tokens');
+      
+      // Debug: Check all devices in the database
+      const allDevices = await DeviceRegistration.find({});
+      
+      allDevices.forEach((device, idx) => {
+        console.log(`Device ${idx + 1}:`, {
+          deviceId: device.deviceId,
+          hasFcmToken: !!device.fcmToken,
+          fcmTokenLength: device.fcmToken ? device.fcmToken.length : 0,
+          notificationEnabled: device.notificationEnabled
+        });
+      });
+      
       return { success: false, error: 'No devices found with FCM tokens' };
     }
 
     const fcmTokens = devices.map(device => device.fcmToken).filter(token => token);
     
     if (fcmTokens.length === 0) {
-      console.log('No valid FCM tokens found');
       return { success: false, error: 'No valid FCM tokens found' };
     }
-
-    console.log(`Sending notification to ${fcmTokens.length} devices`);
     return await sendNotificationToMultipleDevices(fcmTokens, notification);
   } catch (error) {
-    console.error('Error sending notification to all devices:', error);
     return { success: false, error: error.message };
   }
 };
@@ -165,22 +195,32 @@ export const sendNotificationToCategoryDevices = async (category, notification) 
 // Function to send post notification
 export const sendPostNotification = async (post) => {
   try {
+    
+    // Ensure all data values are strings (FCM requirement)
+    const data = {
+      postId: post._id ? post._id.toString() : '',
+      postSlug: post.slug || '',
+      category: post.categorySlug || '',
+      subcategory: (post.subcategorySlug || post.subCategorySlug || '').toString(),
+      type: 'new_post'
+    };
+    
+    // Remove empty string values to clean up payload
+    Object.keys(data).forEach(key => {
+      if (data[key] === '' && key !== 'type') {
+        delete data[key];
+      }
+    });
+    
     const notification = {
       title: 'New Post: ' + post.title,
       body: post.description || 'A new post has been published!',
-      data: {
-        postId: post._id.toString(),
-        postSlug: post.slug,
-        category: post.categorySlug,
-        subcategory: post.subcategorySlug,
-        type: 'new_post'
-      }
+      data
     };
 
-    console.log('Sending post notification:', notification);
-    return await sendNotificationToAllDevices(notification);
+    const result = await sendNotificationToAllDevices(notification);
+    return result;
   } catch (error) {
-    console.error('Error sending post notification:', error);
     return { success: false, error: error.message };
   }
 };
