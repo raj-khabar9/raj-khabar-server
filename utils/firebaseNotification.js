@@ -8,15 +8,39 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize Firebase Admin SDK
-const serviceAccountPath = path.join(__dirname, '../serviceAccountJson/serviceAccountKey.json');
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+let serviceAccount;
+
+// Try to use environment variables first (production)
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } catch (error) {
+    console.error('Error parsing FIREBASE_SERVICE_ACCOUNT environment variable:', error);
+  }
+} else {
+  // Fallback to service account file (development)
+  const serviceAccountPath = path.join(__dirname, '../serviceAccountJson/serviceAccountKey.json');
+  try {
+    if (fs.existsSync(serviceAccountPath)) {
+      serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    } else {
+      console.error('Service account file not found and FIREBASE_SERVICE_ACCOUNT env var not set');
+    }
+  } catch (error) {
+    console.error('Error reading service account file:', error);
+  }
+}
 
 try {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: 'raj-khabar'
-  });
-  console.log('Firebase Admin SDK initialized successfully');
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: 'raj-khabar'
+    });
+    console.log('Firebase Admin SDK initialized successfully');
+  } else {
+    console.error('Firebase service account not configured');
+  }
 } catch (error) {
   if (error.code === 'app/duplicate-app') {
     console.log('Firebase Admin SDK already initialized');
