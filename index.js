@@ -36,6 +36,7 @@ app.use(
       const allowedOrigins = [
         "http://localhost:5173",
         "https://rajkhabarfrontend-production.up.railway.app",
+        "https://raj-khabar-frontend-production.up.railway.app",
       ];
       // allow requests with no origin (like mobile apps, curl, etc.)
       if (!origin || allowedOrigins.includes(origin)) {
