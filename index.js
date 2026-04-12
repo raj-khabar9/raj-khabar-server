@@ -16,6 +16,8 @@ import { centralizedRouter } from "./routes/centralizedRoutes.js";
 import { deviceRouter } from "./routes/deviceRoutes.js";
 import { notificationRouter } from "./routes/notificationRoutes.js";
 import { bulkDeleteRouter } from "./routes/bulkDeleteRoutes.js";
+import { adTypeRouter } from "./routes/adTypeRoutes.js";
+import { appSettingRouter } from "./routes/appSettingRoutes.js";
 
 dotenv.config();
 
@@ -64,6 +66,8 @@ app.use("/api/centralized", centralizedRouter);
 app.use("/api/device", deviceRouter);
 app.use("/api/notification", notificationRouter);
 app.use("/api/bulk-delete", bulkDeleteRouter);
+app.use("/api/ad-type", adTypeRouter);
+app.use("/api/settings", appSettingRouter);
 
 app.listen(PORT, () => {
   console.log("APP is running on port " + PORT);
