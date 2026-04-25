@@ -56,6 +56,15 @@ const postSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    isPageBlockEnabled: {
+      type: Boolean,
+      default: false
+    },
+    pageBlockPercentage: {
+      type: Number,
+      min: 30,
+      max: 100
+    },
     sendNotification: {
       type: Boolean,
       default: false

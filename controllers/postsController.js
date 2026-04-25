@@ -20,6 +20,8 @@ export const createPost = async (req, res) => {
       type,
       isVisibleInCarousel,
       sendNotification,
+      isPageBlockEnabled,
+      pageBlockPercentage,
       publishedAt,
       updatedAt,
       createdAt
@@ -107,6 +109,8 @@ export const createPost = async (req, res) => {
         status: status || "draft",
         isVisibleInCarousel,
         sendNotification: sendNotification || false,
+        isPageBlockEnabled: isPageBlockEnabled || false,
+        pageBlockPercentage: isPageBlockEnabled ? pageBlockPercentage : undefined,
         type,
         publishedAt: publishedAt || Date.now(),
         updatedAt: updatedAt || Date.now(),
@@ -553,6 +557,8 @@ export const updatePost = async (req, res) => {
       "status",
       "isVisibleInCarousel",
       "sendNotification",
+      "isPageBlockEnabled",
+      "pageBlockPercentage",
       "showAdOnLinks",
       "type",
       "publishedAt"
@@ -562,6 +568,10 @@ export const updatePost = async (req, res) => {
         post[field] = req.body[field];
       }
     });
+
+    if (post.isPageBlockEnabled === false) {
+      post.pageBlockPercentage = undefined;
+    }
 
     // --- Handle image update and upload to S3 ---
     if (req.file) {
