@@ -29,7 +29,6 @@ app.get("/", (req, res) => {
   res.send("Hello World! from the backend lets create a new project");
 });
 
-connectDB();
 app.use(cookieParser()); // Middleware to parse cookies
 app.use(express.json()); // Middleware to parse JSON request body
 app.use(
@@ -69,6 +68,25 @@ app.use("/api/bulk-delete", bulkDeleteRouter);
 app.use("/api/ad-type", adTypeRouter);
 app.use("/api/settings", appSettingRouter);
 
-app.listen(PORT, () => {
-  console.log("APP is running on port " + PORT);
-});
+const DB_CONNECT_TIMEOUT_MS = 10000; // 10 seconds
+
+(async () => {
+  try {
+    await Promise.race([
+      connectDB(),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Database connection timed out after 10s")),
+          DB_CONNECT_TIMEOUT_MS
+        )
+      ),
+    ]);
+
+    app.listen(PORT, () => {
+      console.log("APP is running on port " + PORT);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
+  }
+})();
