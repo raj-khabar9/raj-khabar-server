@@ -52,8 +52,8 @@ export const getCategoryOverview = async (req, res) => {
 
     // 4. Fetch posts (essentials only)
     const posts = await Post.find(subcategoryFilter)
-      .select("title slug imageUrl subCategory createdAt")
-      .sort({ createdAt: -1 })
+      .select("title slug imageUrl subCategory createdAt updatedAt")
+      .sort({ updatedAt: -1, createdAt: -1 })
       .limit(12)
       .populate({ path: "subCategory", select: "name slug" });
 

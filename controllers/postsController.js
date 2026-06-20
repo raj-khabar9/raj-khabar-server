@@ -183,7 +183,7 @@ export const getPosts = async (req, res) => {
     const totalPages = Math.ceil(totalPosts / limit);
     const allPosts = await posts
       .find(filters)
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .populate("category", "slug name")
@@ -251,7 +251,7 @@ export const getPostsByCategoryAndSubcategory = async (req, res) => {
         category: category._id,
         subCategory: subCategory._id
       })
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .populate("category", "slug")
@@ -281,6 +281,7 @@ export const getCaroucelPost = async (req, res) => {
         isVisibleInCarousel: true,
         status: "published"
       })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .populate("category", "slug name")
       .populate("subCategory", "slug name");
 
@@ -382,7 +383,7 @@ export const searchPosts = async (req, res) => {
 
     const allPosts = await posts
       .find(filter)
-      .sort({ publishedAt: -1, createdAt: -1 }) // Prioritize publishedAt for sorting
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
       .populate("category", "slug")
@@ -692,7 +693,7 @@ export const getRelatedPosts = async (req, res) => {
 
     let relatedPosts = await posts
       .find(relatedPostsFilter)
-      .sort({ publishedAt: -1, createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .limit(limit)
       .populate("category", "slug name")
       .populate("subCategory", "slug name");
@@ -712,7 +713,7 @@ export const getRelatedPosts = async (req, res) => {
 
       const categoryRelatedPosts = await posts
         .find(categoryRelatedPostsFilter)
-        .sort({ publishedAt: -1, createdAt: -1 })
+        .sort({ updatedAt: -1, createdAt: -1 })
         .limit(postsNeeded)
         .populate("category", "slug name")
         .populate("subCategory", "slug name");
