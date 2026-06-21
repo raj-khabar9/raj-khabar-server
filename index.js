@@ -38,6 +38,9 @@ app.use(
         "http://localhost:5173",
         "https://rajkhabarfrontend-production.up.railway.app",
         "https://raj-khabar-frontend-production.up.railway.app",
+        "https://0syikppn.up.railway.app",
+        "https://api-staging.rajkhabar.com",
+        "https://staging.rajkhabar.com",
       ];
       // allow requests with no origin (like mobile apps, curl, etc.)
       if (!origin || allowedOrigins.includes(origin)) {
