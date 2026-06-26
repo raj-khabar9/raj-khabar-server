@@ -13,7 +13,11 @@ import {
 } from "../controllers/postsController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 import multer from "multer";
-const upload = multer();
+const upload = multer({
+  limits: {
+    fieldSize: 25 * 1024 * 1024 // 25 MB
+  }
+});
 
 const postRouter = express.Router();
 

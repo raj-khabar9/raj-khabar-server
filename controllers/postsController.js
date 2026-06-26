@@ -94,6 +94,22 @@ export const createPost = async (req, res) => {
       }
     }
 
+    let parsedTags = [];
+    if (tags) {
+      if (typeof tags === "string") {
+        try {
+          parsedTags = JSON.parse(tags);
+        } catch (e) {
+          parsedTags = tags.split(",").map((t) => t.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(tags)) {
+        parsedTags = tags;
+      }
+    }
+    if (!Array.isArray(parsedTags)) {
+      parsedTags = [];
+    }
+
     try {
       const newPost = new posts({
         title,
@@ -105,7 +121,7 @@ export const createPost = async (req, res) => {
         subCategory: subcategory._id,
         subCategorySlug: subcategoryslug,
         imageUrl,
-        tags: tags || [],
+        tags: parsedTags,
         status: status || "draft",
         isVisibleInCarousel,
         sendNotification: sendNotification || false,
@@ -140,6 +156,11 @@ export const createPost = async (req, res) => {
         // Don't fail the post creation if notification fails
       }
 
+      console.log("createPost Success Response:", {
+        success: true,
+        message: "Post created successfully",
+        post: newPost
+      });
       return res.status(200).json({
         success: true,
         message: "Post created successfully",
@@ -517,6 +538,7 @@ export const deletePost = async (req, res) => {
 
 export const updatePost = async (req, res) => {
   const { id } = req.params;
+  console.log("DEBUG updatePost: req.body =", req.body);
 
   if (!id) {
     return res.status(400).json({
@@ -544,6 +566,25 @@ export const updatePost = async (req, res) => {
 
     // Store the original status before making changes
     const originalStatus = post.status;
+
+    if (req.body.tags !== undefined) {
+      let parsedTags = [];
+      if (req.body.tags) {
+        if (typeof req.body.tags === "string") {
+          try {
+            parsedTags = JSON.parse(req.body.tags);
+          } catch (e) {
+            parsedTags = req.body.tags.split(",").map((t) => t.trim()).filter(Boolean);
+          }
+        } else if (Array.isArray(req.body.tags)) {
+          parsedTags = req.body.tags;
+        }
+      }
+      if (!Array.isArray(parsedTags)) {
+        parsedTags = [];
+      }
+      req.body.tags = parsedTags;
+    }
 
     // Only allow specific fields to be updated
     const updatableFields = [
@@ -634,6 +675,9 @@ export const updatePost = async (req, res) => {
 
     // Always update updatedAt
     post.updatedAt = Date.now();
+    if(post.status === "published") {
+      post.publishedAt = Date.now();
+    }
 
     await post.save();
 
@@ -650,6 +694,11 @@ export const updatePost = async (req, res) => {
       // Don't fail the post update if notification fails
     }
 
+    console.log("updatePost Success Response:", {
+      success: true,
+      message: "Post updated successfully",
+      post
+    });
     return res.status(200).json({
       success: true,
       message: "Post updated successfully",

@@ -47,7 +47,7 @@ const tablePostSchema = new mongoose.Schema(
         },
         link_type: {
           type: String,
-          enum: ["pdf", "external", "web-view", "internal"],
+          enum: ["pdf", "external", "web-view"],
           required: function () {
             return this.isLink === true;
           }
