@@ -219,11 +219,18 @@ export const createTablePost = async (req, res) => {
 };
 
 export const getTablePosts = async (req, res) => {
-  const { page = 1, limit = 10, search = "" } = req.query;
+  const { page = 1, limit = 10, search = "", category = "", subcategory = "" } = req.query;
   const skip = (page - 1) * limit;
 
   try {
     let filter = {};
+
+    if (category) {
+      filter.parentSlug = category;
+    }
+    if (subcategory) {
+      filter.subcategorySlug = subcategory;
+    }
 
     // Search filter
     if (search && search.trim() !== "") {
@@ -238,7 +245,7 @@ export const getTablePosts = async (req, res) => {
 
     const allPosts = await table_post
       .find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
       .populate("parentCategory", "slug")
@@ -442,7 +449,7 @@ export const getTablePostsByCategoryAndSubcategory = async (req, res) => {
 
     const allPosts = await table_post
       .find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
       .populate("parentCategory", "slug")

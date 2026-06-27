@@ -1,6 +1,7 @@
 import posts from "../models/posts.js";
 import categories from "../models/categories.js";
 import sub_categories from "../models/sub_categories.js";
+import mongoose from "mongoose";
 import { uploadToS3, updateS3File } from "../utils/uploadToS3.js";
 import { sendPostNotification } from "../utils/firebaseNotification.js";
 
@@ -138,26 +139,18 @@ export const createPost = async (req, res) => {
       // Send push notification to all registered devices
       try {
         if (status === "published") {
-          console.log("✅ Post is published, checking sendNotification flag...");
           if (sendNotification) {
             const notificationResult = await sendPostNotification(newPost);
-            console.log("📤 Push notification result:", notificationResult);
+            console.log("Push notification result:", notificationResult);
           } else {
-            console.log("❌ Notification not sent - sendNotification is false");
+            console.log("Notification not sent - sendNotification is false");
           }
         } else {
-          console.log("❌ Notification not sent - post status is:", status, "(needs to be 'published')");
+          console.log("Notification not sent - post status is:", status, "(needs to be 'published')");
         }
       } catch (notificationError) {
-        console.error("💥 Error sending push notification:", notificationError);
-        // Don't fail the post creation if notification fails
+        console.error("Error sending push notification:", notificationError);
       }
-
-      console.log("createPost Success Response:", {
-        success: true,
-        message: "Post created successfully",
-        post: newPost
-      });
       return res.status(200).json({
         success: true,
         message: "Post created successfully",
@@ -181,7 +174,7 @@ export const createPost = async (req, res) => {
 };
 
 export const getPosts = async (req, res) => {
-  const { page = 1, limit = 10, status, search } = req.query;
+  const { page = 1, limit = 10, status, search, category, subcategory } = req.query;
   const skip = (page - 1) * limit;
 
   const filters = {};
@@ -194,6 +187,22 @@ export const getPosts = async (req, res) => {
   // 🔥 Add this for search support
   if (search && search.trim() !== "") {
     filters.title = { $regex: search, $options: "i" };
+  }
+
+  if (category) {
+    if (mongoose.Types.ObjectId.isValid(category)) {
+      filters.category = category;
+    } else {
+      filters.categorySlug = category;
+    }
+  }
+
+  if (subcategory) {
+    if (mongoose.Types.ObjectId.isValid(subcategory)) {
+      filters.subCategory = subcategory;
+    } else {
+      filters.subCategorySlug = subcategory;
+    }
   }
 
   try {
@@ -212,6 +221,7 @@ export const getPosts = async (req, res) => {
       message: "Posts fetched successfully",
       posts: allPosts,
       totalPages,
+      total: totalPosts,
       currentPage: page
     });
   } catch (error) {
@@ -666,8 +676,6 @@ export const updatePost = async (req, res) => {
       post.subCategorySlug = subCategorySlug;
     }
 
-    // Check if post is being published for the first time
-    const wasUnpublished = originalStatus !== "published";
     const isNowPublished = post.status === "published";
 
     // Always update updatedAt
@@ -680,15 +688,13 @@ export const updatePost = async (req, res) => {
 
     // Send push notification if post is being published for the first time
     try {
-      if (wasUnpublished && isNowPublished) {
+      if (isNowPublished) {
         if (post.sendNotification) {
           const notificationResult = await sendPostNotification(post);
-          console.log("Push notification result for updated post:", notificationResult);
         }
       }
     } catch (notificationError) {
       console.error("Error sending push notification for updated post:", notificationError);
-      // Don't fail the post update if notification fails
     }
 
     console.log("updatePost Success Response:", {

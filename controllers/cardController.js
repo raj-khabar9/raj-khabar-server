@@ -153,7 +153,7 @@ export const getCardPostsByCategory = async (req, res) => {
     // Fetch matching cards
     const cards = await card_structure
       .find(filter)
-      .sort({ _id: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 
@@ -175,11 +175,17 @@ export const getCardPostsByCategory = async (req, res) => {
 };
 
 export const getAllCardPosts = async (req, res) => {
-  const { page = 1, limit = 10, search = "" } = req.query;
+  const { page = 1, limit = 10, search = "", category = "", subcategory = "" } = req.query;
   const skip = (page - 1) * limit;
 
   try {
     let filter = {};
+    if (category) {
+      filter.parentSlug = category;
+    }
+    if (subcategory) {
+      filter.subCategorySlug = subcategory;
+    }
     if (search && search.trim() !== "") {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -193,7 +199,7 @@ export const getAllCardPosts = async (req, res) => {
 
     const cards = await card_structure
       .find(filter)
-      .sort({ _id: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
 

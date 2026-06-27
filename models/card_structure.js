@@ -46,6 +46,6 @@ const cardStructureSchema = new mongoose.Schema({
     ref: "SubCategory",
     required: true
   }
-});
+}, { timestamps: true });
 
 export default mongoose.model("CardStructure", cardStructureSchema);

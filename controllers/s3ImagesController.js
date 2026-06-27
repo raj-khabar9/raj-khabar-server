@@ -40,5 +40,38 @@ export const deleteFile = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleting file:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete file",
+      error: error.message
+    });
+  }
+};
+
+export const bulkDeleteFiles = async (req, res) => {
+  const { keys } = req.body;
+  if (!keys || !Array.isArray(keys) || keys.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide an array of file keys to delete"
+    });
+  }
+
+  try {
+    const promises = keys.map(key => deleteFromS3(key));
+    await Promise.all(promises);
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully deleted ${keys.length} file(s)`,
+      deletedCount: keys.length
+    });
+  } catch (error) {
+    console.error("Error bulk deleting S3 files:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to bulk delete files",
+      error: error.message
+    });
   }
 };
