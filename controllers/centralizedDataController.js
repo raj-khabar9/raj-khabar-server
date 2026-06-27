@@ -59,15 +59,15 @@ export const getCategoryOverview = async (req, res) => {
 
     // 5. Fetch table posts (essentials only)
     const tablePosts = await TablePost.find(subcategoryFilter)
-      .select("name slug subCategory rowData createdAt")
-      .sort({ createdAt: -1 })
+      .select("name slug subCategory rowData createdAt updatedAt")
+      .sort({ updatedAt: -1, createdAt: -1 })
       .limit(8)
       .populate({ path: "subCategory", select: "name slug" });
 
     // 6. Fetch card posts (essentials only)
     const cardPosts = await CardStructure.find(subcategoryFilter)
-      .select("name slug subCategory cardHeading createdAt")
-      .sort({ createdAt: -1 })
+      .select("name slug subCategory cardHeading createdAt updatedAt")
+      .sort({ updatedAt: -1, createdAt: -1 })
       .limit(8)
       .populate({ path: "subCategory", select: "name slug" });
 

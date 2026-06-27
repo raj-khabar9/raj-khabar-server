@@ -308,6 +308,9 @@ export const updateCardPost = async (req, res) => {
     if (middleField !== undefined) card.middleField = middleField;
     if (link !== undefined) card.link = link;
 
+    // Always update updatedAt
+    card.updatedAt = Date.now();
+
     await card.save();
 
     return res.status(200).json({
