@@ -137,12 +137,9 @@ export const createPost = async (req, res) => {
 
       // Send push notification to all registered devices
       try {
-        console.log("📝 Post notification check - Status:", status, "SendNotification:", sendNotification);
         if (status === "published") {
           console.log("✅ Post is published, checking sendNotification flag...");
           if (sendNotification) {
-            console.log("🔔 Sending notification for new post:", newPost.title);
-            
             const notificationResult = await sendPostNotification(newPost);
             console.log("📤 Push notification result:", notificationResult);
           } else {

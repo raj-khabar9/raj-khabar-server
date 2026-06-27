@@ -495,3 +495,104 @@ export const getCategoriesWithSubcategories = async (req, res) => {
     });
   }
 };
+
+export const createCategoryWithSubcategories = async (req, res) => {
+  const { name, slug, description, isVisibleOnHome } = req.body;
+  let subcategories = req.body.subcategories;
+
+  if (typeof subcategories === "string") {
+    try {
+      subcategories = JSON.parse(subcategories);
+    } catch (e) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid subcategories JSON format",
+        error: e.message
+      });
+    }
+  }
+
+  if (!name || !slug) {
+    return res.status(400).json({
+      success: false,
+      message: "Category Name and Slug are required"
+    });
+  }
+
+  // Check if the category already exists
+  const existingCategory = await categories.findOne({ slug });
+  if (existingCategory) {
+    return res.status(400).json({
+      success: false,
+      message: `Category with slug ${slug} already exists`
+    });
+  }
+
+  let iconUrl = "";
+  if (req.file) {
+    try {
+      iconUrl = await uploadToS3(req.file);
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Icon upload to S3 failed",
+        error: error.message
+      });
+    }
+  } else if (req.body.iconUrl) {
+    iconUrl = req.body.iconUrl;
+  }
+
+  try {
+    const newCategory = new categories({
+      name,
+      slug,
+      description,
+      iconUrl,
+      parentCategory: null,
+      parentSlug: "",
+      isVisibleOnHome: isVisibleOnHome === "true" || isVisibleOnHome === true
+    });
+    await newCategory.save();
+
+    // Now save subcategories if any
+    if (Array.isArray(subcategories) && subcategories.length > 0) {
+      for (const sub of subcategories) {
+        if (!sub.name || !sub.slug) {
+          continue;
+        }
+
+        let tableStruct = null;
+        if (sub.type === "table" && sub.tableStructureSlug) {
+          tableStruct = await tableStructure.findOne({ slug: sub.tableStructureSlug });
+        }
+
+        const newSubcategory = new sub_categories({
+          name: sub.name,
+          slug: sub.slug,
+          description: sub.description || "",
+          type: sub.type,
+          parentCategory: newCategory._id,
+          parentSlug: slug,
+          tableStructure: tableStruct ? tableStruct._id : null,
+          tableStructureSlug: sub.tableStructureSlug || ""
+        });
+        await newSubcategory.save();
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Category cloned/created successfully with its subcategories",
+      category: newCategory
+    });
+  } catch (error) {
+    console.error("Error creating category with subcategories:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+

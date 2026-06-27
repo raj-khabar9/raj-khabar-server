@@ -7,7 +7,8 @@ import {
   getCardPostsByCategory,
   updateCardPost,
   deleteCardPost,
-  deleteCardById
+  deleteCardById,
+  bulkDeleteCardPosts
 } from "../controllers/cardController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 
@@ -35,6 +36,7 @@ cardRouter.delete(
   deleteCardPost
 );
 
+cardRouter.delete("/bulk-delete", authMiddleware, bulkDeleteCardPosts);
 cardRouter.delete("/delete/:id", authMiddleware, deleteCardById);
 
 export { cardRouter };

@@ -94,6 +94,8 @@ export const createCardPost = async (req, res) => {
 
 export const getCardPostsByCategory = async (req, res) => {
   const { parentSlug, subCategorySlug } = req.params;
+  const { page = 1, limit = 10, search = "" } = req.query;
+  const skip = (page - 1) * limit;
 
   if (!parentSlug || !subCategorySlug) {
     return res.status(400).json({
@@ -132,16 +134,36 @@ export const getCardPostsByCategory = async (req, res) => {
       });
     }
 
-    // Fetch all matching cards
-    const cards = await card_structure.find({
+    let filter = {
       parentCategory: category._id,
       subCategory: subCategory._id
-    });
+    };
+
+    if (search && search.trim() !== "") {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { cardHeading: { $regex: search, $options: "i" } },
+        { topField: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const totalCards = await card_structure.countDocuments(filter);
+    const totalPages = Math.ceil(totalCards / limit);
+
+    // Fetch matching cards
+    const cards = await card_structure
+      .find(filter)
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     return res.status(200).json({
       success: true,
       message: "Cards fetched successfully",
-      data: cards
+      data: cards,
+      total: totalCards,
+      totalPages,
+      currentPage: Number(page)
     });
   } catch (error) {
     return res.status(500).json({
@@ -153,13 +175,35 @@ export const getCardPostsByCategory = async (req, res) => {
 };
 
 export const getAllCardPosts = async (req, res) => {
+  const { page = 1, limit = 10, search = "" } = req.query;
+  const skip = (page - 1) * limit;
+
   try {
-    const cards = await card_structure.find();
+    let filter = {};
+    if (search && search.trim() !== "") {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { cardHeading: { $regex: search, $options: "i" } },
+        { topField: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const totalCards = await card_structure.countDocuments(filter);
+    const totalPages = Math.ceil(totalCards / limit);
+
+    const cards = await card_structure
+      .find(filter)
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     return res.status(200).json({
       success: true,
       message: "Cards fetched successfully",
-      data: cards
+      data: cards,
+      total: totalCards,
+      totalPages,
+      currentPage: Number(page)
     });
   } catch (error) {
     return res.status(500).json({
@@ -366,3 +410,41 @@ export const deleteCardById = async (req, res) => {
     });
   }
 };
+
+export const bulkDeleteCardPosts = async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide an array of card IDs to delete"
+    });
+  }
+
+  const validIds = ids.filter(id => id && id.toString().match(/^[0-9a-fA-F]{24}$/));
+  
+  if (validIds.length !== ids.length) {
+    return res.status(400).json({
+      success: false,
+      message: "Some IDs are invalid"
+    });
+  }
+
+  try {
+    const result = await card_structure.deleteMany({ _id: { $in: validIds } });
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} card(s)`,
+      deletedCount: result.deletedCount,
+      requestedCount: ids.length
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
+

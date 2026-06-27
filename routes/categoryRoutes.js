@@ -11,7 +11,8 @@ import {
   getAllCategories,
   getAllSubcategoriesOfCategory,
   getCategoriesWithSubcategories,
-  getCategoriesWithSubcategoriesForAdmin
+  getCategoriesWithSubcategoriesForAdmin,
+  createCategoryWithSubcategories
 } from "../controllers/categoriesController.js";
 import { authMiddleware } from "../middleware/authmiddleware.js";
 import multer from "multer";
@@ -21,7 +22,14 @@ const categoryRouter = express.Router();
 
 // Category routes
 categoryRouter.post(
+  "/clone-category",
+  authMiddleware,
+  upload.single("icon"),
+  createCategoryWithSubcategories
+);
+categoryRouter.post(
   "/create-category",
+
   authMiddleware,
   upload.single("icon"),
   createCategory
