@@ -509,9 +509,40 @@ export const getCategoriesWithSubcategories = async (req, res) => {
       {
         $lookup: {
           from: "categories", // must match your MongoDB collection name
-          localField: "slug",
-          foreignField: "parentSlug",
+          let: { parentSlug: "$slug" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$parentSlug", "$$parentSlug"] },
+                hideCategory: { $ne: true }
+              }
+            },
+            {
+              $lookup: {
+                from: "subcategories",
+                let: { childSlug: "$slug" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: { $eq: ["$parentSlug", "$$childSlug"] }
+                    }
+                  }
+                ],
+                as: "subcategories"
+              }
+            },
+            {
+              $addFields: {
+                hideCategory: { $ifNull: ["$hideCategory", false] }
+              }
+            }
+          ],
           as: "maincategories"
+        }
+      },
+      {
+        $addFields: {
+          hideCategory: { $ifNull: ["$hideCategory", false] }
         }
       }
     ]);
