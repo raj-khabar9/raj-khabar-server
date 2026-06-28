@@ -27,6 +27,10 @@ const categorySchema = new mongoose.Schema(
     isVisibleOnHome: {
       type: Boolean,
       default: false
+    },
+    hideCategory: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

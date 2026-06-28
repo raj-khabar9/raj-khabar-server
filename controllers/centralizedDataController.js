@@ -20,7 +20,7 @@ export const getCategoryOverview = async (req, res) => {
 
     // 1. Get main category info (only essentials)
     const category = await Category.findOne({ slug }).select(
-      "name slug description iconUrl isVisibleOnHome"
+      "name slug description iconUrl isVisibleOnHome hideCategory"
     );
     if (!category) {
       return res

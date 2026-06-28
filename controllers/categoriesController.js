@@ -6,7 +6,7 @@ import { uploadToS3, updateS3File } from "../utils/uploadToS3.js";
 // These function are used to create, update, and delete categories in the database
 
 export const createCategory = async (req, res) => {
-  const { name, slug, description, parentSlug, isVisibleOnHome } = req.body;
+  const { name, slug, description, parentSlug, isVisibleOnHome, hideCategory } = req.body;
 
   // Check if the category already exists
   const existingCategory = await categories.findOne({ slug });
@@ -50,7 +50,8 @@ export const createCategory = async (req, res) => {
       iconUrl,
       parentCategory: parentCategory._id || null,
       parentSlug,
-      isVisibleOnHome
+      isVisibleOnHome: isVisibleOnHome === "true" || isVisibleOnHome === true,
+      hideCategory: hideCategory === "true" || hideCategory === true
     });
     await newCategory.save();
     return res.status(201).json({
@@ -68,7 +69,7 @@ export const createCategory = async (req, res) => {
 
 export const updateCategory = async (req, res) => {
   const { slug } = req.params;
-  const { name, description, parentSlug, isVisibleOnHome } = req.body;
+  const { name, description, parentSlug, isVisibleOnHome, hideCategory } = req.body;
 
   try {
     // Find category by slug
@@ -117,7 +118,9 @@ export const updateCategory = async (req, res) => {
     if (parentCategory !== undefined) category.parentCategory = parentCategory;
     if (parentSlug !== undefined) category.parentSlug = parentSlug;
     if (isVisibleOnHome !== undefined)
-      category.isVisibleOnHome = isVisibleOnHome;
+      category.isVisibleOnHome = isVisibleOnHome === "true" || isVisibleOnHome === true;
+    if (hideCategory !== undefined)
+      category.hideCategory = hideCategory === "true" || hideCategory === true;
 
     await category.save();
 
@@ -435,6 +438,19 @@ export const getCategoriesWithSubcategoriesForAdmin = async (req, res) => {
   try {
     const result = await categories.aggregate([
       {
+        $match: {
+          $or: [
+            { parentCategory: null },
+            { parentCategory: { $exists: false } }
+          ],
+          $or: [
+            { parentSlug: "" },
+            { parentSlug: null },
+            { parentSlug: { $exists: false } }
+          ]
+        }
+      },
+      {
         $lookup: {
           from: "subcategories", // must match your MongoDB collection name
           localField: "slug",
@@ -469,6 +485,20 @@ export const getCategoriesWithSubcategories = async (req, res) => {
   try {
     const result = await categories.aggregate([
       {
+        $match: {
+          hideCategory: { $ne: true },
+          $or: [
+            { parentCategory: null },
+            { parentCategory: { $exists: false } }
+          ],
+          $or: [
+            { parentSlug: "" },
+            { parentSlug: null },
+            { parentSlug: { $exists: false } }
+          ]
+        }
+      },
+      {
         $lookup: {
           from: "subcategories", // must match your MongoDB collection name
           localField: "slug",
@@ -497,7 +527,7 @@ export const getCategoriesWithSubcategories = async (req, res) => {
 };
 
 export const createCategoryWithSubcategories = async (req, res) => {
-  const { name, slug, description, isVisibleOnHome } = req.body;
+  const { name, slug, description, isVisibleOnHome, hideCategory } = req.body;
   let subcategories = req.body.subcategories;
 
   if (typeof subcategories === "string") {
@@ -551,7 +581,8 @@ export const createCategoryWithSubcategories = async (req, res) => {
       iconUrl,
       parentCategory: null,
       parentSlug: "",
-      isVisibleOnHome: isVisibleOnHome === "true" || isVisibleOnHome === true
+      isVisibleOnHome: isVisibleOnHome === "true" || isVisibleOnHome === true,
+      hideCategory: hideCategory === "true" || hideCategory === true
     });
     await newCategory.save();
 
