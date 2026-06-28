@@ -218,7 +218,20 @@ export const deleteCategory = async (req, res) => {
 // This function is used to fetch the all categories
 export const getAllCategories = async (req, res) => {
   try {
-    const allCategories = await categories.find().sort({ createdAt: -1 });
+    const allCategories = await categories.aggregate(
+      {
+        $match: {
+          $or: [
+            { parentCategory: null },
+            { parentCategory: { $exists: false } }
+          ],
+          $or: [
+            { parentSlug: "" },
+            { parentSlug: null },
+            { parentSlug: { $exists: false } }
+          ]
+        }
+      }).find().sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -437,19 +450,6 @@ export const getAllSubcategoriesOfCategory = async (req, res) => {
 export const getCategoriesWithSubcategoriesForAdmin = async (req, res) => {
   try {
     const result = await categories.aggregate([
-      {
-        $match: {
-          $or: [
-            { parentCategory: null },
-            { parentCategory: { $exists: false } }
-          ],
-          $or: [
-            { parentSlug: "" },
-            { parentSlug: null },
-            { parentSlug: { $exists: false } }
-          ]
-        }
-      },
       {
         $lookup: {
           from: "subcategories", // must match your MongoDB collection name
