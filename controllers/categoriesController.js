@@ -218,7 +218,7 @@ export const deleteCategory = async (req, res) => {
 // This function is used to fetch the all categories
 export const getAllCategories = async (req, res) => {
   try {
-    const allCategories = await categories.sort({ createdAt: -1 });
+    const allCategories = await categories.find().sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
